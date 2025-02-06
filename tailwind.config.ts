@@ -13,6 +13,7 @@ export default {
         foreground: "var(--foreground)",
       },
     },
+    
   },
-  plugins: [],
+  plugins: [require('@tailwindcss/aspect-ratio'),],
 } satisfies Config;
