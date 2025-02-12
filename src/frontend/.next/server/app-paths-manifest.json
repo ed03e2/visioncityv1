@@ -1,0 +1,8 @@
+{
+  "/dashboard/setting/page": "app/dashboard/setting/page.js",
+  "/dashboard/map/page": "app/dashboard/map/page.js",
+  "/dashboard/page": "app/dashboard/page.js",
+  "/auth/login/page": "app/auth/login/page.js",
+  "/analytic/page": "app/analytic/page.js",
+  "/dashboard/space/page": "app/dashboard/space/page.js"
+}
