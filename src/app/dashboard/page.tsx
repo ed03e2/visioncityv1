@@ -20,7 +20,7 @@ const places: Place[] = [
   {
     id: 2,
     title: 'City Mall',
-    image: 'https://assets.api.uizard.io/api/cdn/stream/67b35ead-16ee-49ef-89c2-1dcb094d0037.png',
+    image: 'https://assets.api.uizard.io/api/cdn/stream/f8e9a434-8098-42ca-bc35-369428a83a4c.png',
     description: 'A popular shopping destination with various retail stores and eateries.',
     mapImage: 'https://assets.api.uizard.io/api/cdn/stream/591c3537-b6e0-4b86-afe0-247a66d301cd.png',
   },
@@ -72,7 +72,7 @@ export default function Places(): JSX.Element {
               </div>
               
               <Link 
-                href={`/dashboard/space`}
+                href={`/analytic`}
                 className="w-full py-4 bg-white text-black text-base font-medium 
                          rounded hover:bg-blue-600 hover:text-white transition-all duration-200
                          mt-auto text-center"

@@ -27,14 +27,6 @@ export default function Layout({ children }: LayoutProps) {
                         </li>
                         <li>
                             <Link 
-                                href="/analytic" 
-                                className="text-black no-underline transition-colors hover:text-blue-200"
-                            >
-                                Analytic
-                            </Link>
-                        </li>
-                        <li>
-                            <Link 
                                 href="/dashboard/setting" 
                                 className="text-black no-underline transition-colors hover:text-blue-200"
                             >

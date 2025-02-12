@@ -1,6 +1,7 @@
 'use client';
 import React, { FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 const backgroundImage = 'https://assets.api.uizard.io/api/cdn/stream/ea931fde-9114-4bda-ba9a-11bda37f757f.png';
 
@@ -79,13 +80,14 @@ function Login() {
                 Forgot Password?
               </a>
             </div>
-
             <button 
+              onClick={() => router.push("/dashboard")}
               type="submit" 
               className="p-3 rounded-md bg-white text-[#030303] font-medium transition-all duration-300 hover:bg-blue-600 hover:text-white"
             >
               Login
             </button>
+
           </form>
         </div>
       </div>
