@@ -1,14 +1,19 @@
 'use client';
-
+import React from "react";
 import { useState } from 'react';
-import { BarChart } from '@/components/charts/BarChart';
-import { LineChart } from '@/components/charts/LineChart';
-import { PieChart } from '@/components/charts/PieChart';
-import { Calendar } from '@/components/charts/Calendar';
-import { HeatMap } from '@/components/charts/HeatMap';
+import { BarChart } from '@/app/components/charts/BarChart';
+import { LineChart } from '@/app/components/charts/LineChart';
+import { PieChart } from '@/app/components/charts/PieChart';
+import { Calendar } from '@/app/components/charts/Calendar';
+import HeatMap from '@/app/components/charts/HeatMap'
+import moment from 'moment'
 
 export default function DashboardPage() {
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const tomorrow = moment().add(2, 'days');
+  const [startDate, setStartDate] = React.useState("2023-05-01");
+  const [endDate, setEndDate] = React.useState(tomorrow.format('YYYY-MM-DD'));
+  
 
   return (
     <div className="p-6 space-y-6">
@@ -47,7 +52,6 @@ export default function DashboardPage() {
         {/* Mapa de Calor */}
         <div className="bg-white p-4 rounded-lg shadow">
           <h2 className="text-lg font-semibold mb-4">Mapa de Calor</h2>
-          <HeatMap/>
         </div>
       </div>
     </div>
