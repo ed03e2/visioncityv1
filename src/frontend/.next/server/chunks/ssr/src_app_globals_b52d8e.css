@@ -382,6 +382,10 @@ img, video {
   margin-left: .5rem;
 }
 
+.mt-2 {
+  margin-top: .5rem;
+}
+
 .mt-24 {
   margin-top: 6rem;
 }
@@ -462,10 +466,6 @@ img, video {
   width: 2.5rem;
 }
 
-.w-16 {
-  width: 4rem;
-}
-
 .w-4 {
   width: 1rem;
 }
@@ -476,6 +476,10 @@ img, video {
 
 .w-full {
   width: 100%;
+}
+
+.min-w-\[250px\] {
+  min-width: 250px;
 }
 
 .max-w-7xl {

@@ -4,8 +4,9 @@ import { useState, useEffect } from 'react';
 import { BarChart } from '@/components/charts/BarChart';
 import { LineChart } from '@/components/charts/LineChart';
 import { PieChart } from '@/components/charts/PieChart';
-import { Calendar } from '@/components/charts/Calendar';
+import { Calendar } from '@/components/filters/Calendar';
 import HeatMap from '@/components/charts/HeatMap';
+import RangeSlider from '@/components/filters/RangeSlider'; // New component
 
 const API_URL = "http://localhost:5000/available-dates"; // Flask API
 
@@ -17,8 +18,8 @@ export default function DashboardPage() {
 
   const [selectedDate, setSelectedDate] = useState<string>(getTodayDate());
   const [availableDates, setAvailableDates] = useState<string[]>([]);
+  const [timeRange, setTimeRange] = useState<[number, number]>([12, 16]); // ✅ Default 12:00 - 16:00
 
-  // Fetch available dates when the page loads
   useEffect(() => {
     fetch(API_URL)
       .then((res) => res.json())
@@ -45,36 +46,26 @@ export default function DashboardPage() {
     <div className="p-6 space-y-6">
       <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div className="bg-white p-4 rounded-lg shadow">
-          <h2 className="text-lg font-semibold mb-4">Estadísticas</h2>
-          <BarChart />
-        </div>
-
-        <div className="bg-white p-4 rounded-lg shadow">
-          <h2 className="text-lg font-semibold mb-4">Tendencias</h2>
-          <LineChart />
-        </div>
-
-        <div className="bg-white p-4 rounded-lg shadow">
-          <h2 className="text-lg font-semibold mb-4">Distribución</h2>
-          <PieChart />
+      <div className="bg-white p-4 rounded-lg shadow">
+        <h2 className="text-lg font-semibold mb-4">Analytics</h2>
+        <div className="flex flex-wrap justify-between gap-4">
+          <div className="flex-1 min-w-[250px]"><BarChart /></div>
+          <div className="flex-1 min-w-[250px]"><LineChart /></div>
+          <div className="flex-1 min-w-[250px]"><PieChart /></div>
         </div>
       </div>
 
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
         <div className="bg-white p-4 rounded-lg shadow">
-          <h2 className="text-lg font-semibold mb-4">Calendario</h2>
-          <Calendar 
-            selectedDate={selectedDate} 
-            onChange={handleDateChange}
-            disabledDates={availableDates} 
-          />
+          <h2 className="text-lg font-semibold mb-4">Filter</h2>
+          <Calendar selectedDate={selectedDate} onChange={handleDateChange} disabledDates={availableDates} />
+          <RangeSlider value={timeRange} onChange={setTimeRange} />
         </div>
 
         <div className="bg-white p-4 rounded-lg shadow">
-          <h2 className="text-lg font-semibold mb-4">Mapa de Calor</h2>
-          <HeatMap selectedDate={selectedDate} />
+          <h2 className="text-lg font-semibold mb-4">Map</h2>
+          <HeatMap selectedDate={selectedDate} timeRange={timeRange} />
         </div>
       </div>
     </div>

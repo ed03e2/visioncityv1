@@ -9,8 +9,8 @@ POSTGIS_CONN = {
     "port": 5434,
 }
 
-def get_filtered_data(date_filter):
-    """Fetch heatmap data filtered by date from PostGIS."""
+def get_filtered_data(date_filter, start_hour, end_hour):
+    """Fetch heatmap data filtered by date and hour from PostGIS."""
     try:
         conn = psycopg2.connect(**POSTGIS_CONN)
         cur = conn.cursor()
@@ -18,10 +18,11 @@ def get_filtered_data(date_filter):
         SQL_QUERY = """
             SELECT id, id_person, lat, long, timestamp
             FROM person_observed
-            WHERE DATE(timestamp) = %s;
+            WHERE DATE(timestamp) = %s
+            AND EXTRACT(HOUR FROM timestamp) BETWEEN %s AND %s;
         """
         
-        cur.execute(SQL_QUERY, (date_filter,))
+        cur.execute(SQL_QUERY, (date_filter, start_hour, end_hour))
         rows = cur.fetchall()
         cur.close()
         conn.close()
