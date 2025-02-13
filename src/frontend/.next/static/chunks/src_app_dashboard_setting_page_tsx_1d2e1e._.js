@@ -18,7 +18,7 @@
     "static/chunks/node_modules_@luma_gl_36fc4d._.js",
     "static/chunks/node_modules_@loaders_gl_f04db0._.js",
     "static/chunks/node_modules_af4480._.js",
-    "static/chunks/src_ff6df2._.js",
+    "static/chunks/src_app_823ada._.js",
     "static/chunks/node_modules_471772._.css"
   ],
   "source": "dynamic"

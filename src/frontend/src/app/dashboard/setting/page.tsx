@@ -1,12 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { BarChart } from '@/components/charts/BarChart';
-import { LineChart } from '@/components/charts/LineChart';
-import { PieChart } from '@/components/charts/PieChart';
-import { Calendar } from '@/components/filters/Calendar';
-import HeatMap from '@/components/charts/HeatMap';
-import RangeSlider from '@/components/filters/RangeSlider'; // New component
+import { BarChart } from '@/app/components/charts/BarChart';
+import { LineChart } from '@/app/components/charts/LineChart';
+import { PieChart } from '@/app/components/charts/PieChart';
+import { Calendar } from '@/app/components/filters/Calendar';
+import HeatMap from '@/app/components/charts/HeatMap';
+import RangeSlider from '@/app/components/filters/RangeSlider'; // New component
 
 const API_URL = "http://localhost:5000/available-dates"; // Flask API
 
