@@ -1,3 +1,4 @@
 {
-  "/dashboard/setting/page": "app/dashboard/setting/page.js"
+  "/dashboard/setting/page": "app/dashboard/setting/page.js",
+  "/favicon.ico/route": "app/favicon.ico/route.js"
 }

@@ -26,7 +26,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        {/* 🔹 Load Google Maps API */}
+        {/* ✅ Load Google Maps API Without onLoad */}
         <Script
           src={`https://maps.googleapis.com/maps/api/js?key=AIzaSyALw8hi8WHQy8AuqZXPD2lMkQai1ppnxyM&libraries=places`}
           strategy="beforeInteractive"
