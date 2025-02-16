@@ -1,11 +1,11 @@
-import base64
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import json
-from database import get_filtered_data, get_available_dates
+import base64
+from database import get_filtered_data, get_available_dates, generate_arc_layer, get_zones
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "*"}})  # Allow frontend requests
+CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
 
 @app.route("/heatmap", methods=["GET"])
 def get_heatmap():
@@ -17,27 +17,25 @@ def get_heatmap():
     if not date:
         return jsonify({"error": "Missing date parameter"}), 400
 
-    try:
-        data = get_filtered_data(date, start_hour, end_hour)
-        parsed_data = json.loads(data)
-
-        if not parsed_data.get("features"):
-            return jsonify({"error": "No data found for this date and time range.", "features": []}), 200
-
-        return jsonify(parsed_data)
-    except Exception as e:
-        print(f"Error: {str(e)}")
-        return jsonify({"error": str(e), "features": []}), 500
+    return jsonify(get_filtered_data(date, start_hour, end_hour))
 
 @app.route("/available-dates", methods=["GET"])
 def get_available_dates_route():
-    """Return dates that have data in the database."""
-    try:
-        available_dates = get_available_dates()
-        return jsonify({"available_dates": available_dates})
-    except Exception as e:
-        print(f"Error fetching available dates: {str(e)}")
-        return jsonify({"error": str(e)}), 500
+    """Return available dates with data."""
+    return jsonify({"available_dates": get_available_dates()})
+
+@app.route("/arc-data", methods=["GET"])
+def get_arc_data():
+    """Fetch ArcLayer data."""
+    arc_data = generate_arc_layer()
+    
+    if "error" in arc_data:
+        print(f"❌ ERROR in /arc-data: {arc_data['error']}")  # ✅ Debugging
+        return jsonify({"error": arc_data["error"]}), 500
+    
+    print("✅ ArcLayer Data Fetched Successfully")  # ✅ Debugging
+    return jsonify(arc_data)
+
 
 @app.route("/bitmap", methods=["GET"])
 def get_bitmap():
@@ -45,11 +43,18 @@ def get_bitmap():
     try:
         with open("parque_image_borders.png", "rb") as img_file:
             img_base64 = base64.b64encode(img_file.read()).decode("utf-8")
-
         return jsonify({"image": f"data:image/png;base64,{img_base64}"})
-
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+@app.route("/zones", methods=["GET"])
+def get_zones_route():
+    """Fetch zone polygons."""
+    zones_data = get_zones()
+    if "error" in zones_data:
+        return jsonify({"error": zones_data["error"]}), 500
+    return jsonify({"zones": zones_data.to_json()})  # ✅ Returns GeoJSON
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)

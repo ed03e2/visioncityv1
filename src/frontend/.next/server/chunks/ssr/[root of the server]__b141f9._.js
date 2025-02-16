@@ -299,47 +299,54 @@ __turbopack_esm__({
 });
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_import__("[project]/node_modules/next/dist/server/route-modules/app-page/vendored/ssr/react-jsx-dev-runtime.js [app-ssr] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_import__("[project]/node_modules/next/dist/server/route-modules/app-page/vendored/ssr/react.js [app-ssr] (ecmascript)");
-var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$deck$2e$gl$2f$layers$2f$dist$2f$bitmap$2d$layer$2f$bitmap$2d$layer$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__BitmapLayer$3e$__ = __turbopack_import__("[project]/node_modules/@deck.gl/layers/dist/bitmap-layer/bitmap-layer.js [app-ssr] (ecmascript) <export default as BitmapLayer>");
-var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$deck$2e$gl$2f$aggregation$2d$layers$2f$dist$2f$heatmap$2d$layer$2f$heatmap$2d$layer$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__HeatmapLayer$3e$__ = __turbopack_import__("[project]/node_modules/@deck.gl/aggregation-layers/dist/heatmap-layer/heatmap-layer.js [app-ssr] (ecmascript) <export default as HeatmapLayer>");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$deck$2e$gl$2f$google$2d$maps$2f$dist$2f$google$2d$maps$2d$overlay$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__GoogleMapsOverlay$3e$__ = __turbopack_import__("[project]/node_modules/@deck.gl/google-maps/dist/google-maps-overlay.js [app-ssr] (ecmascript) <export default as GoogleMapsOverlay>");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$deck$2e$gl$2f$layers$2f$dist$2f$bitmap$2d$layer$2f$bitmap$2d$layer$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__BitmapLayer$3e$__ = __turbopack_import__("[project]/node_modules/@deck.gl/layers/dist/bitmap-layer/bitmap-layer.js [app-ssr] (ecmascript) <export default as BitmapLayer>");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$deck$2e$gl$2f$layers$2f$dist$2f$geojson$2d$layer$2f$geojson$2d$layer$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__GeoJsonLayer$3e$__ = __turbopack_import__("[project]/node_modules/@deck.gl/layers/dist/geojson-layer/geojson-layer.js [app-ssr] (ecmascript) <export default as GeoJsonLayer>");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$deck$2e$gl$2f$aggregation$2d$layers$2f$dist$2f$heatmap$2d$layer$2f$heatmap$2d$layer$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__HeatmapLayer$3e$__ = __turbopack_import__("[project]/node_modules/@deck.gl/aggregation-layers/dist/heatmap-layer/heatmap-layer.js [app-ssr] (ecmascript) <export default as HeatmapLayer>");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$deck$2e$gl$2f$layers$2f$dist$2f$arc$2d$layer$2f$arc$2d$layer$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__ArcLayer$3e$__ = __turbopack_import__("[project]/node_modules/@deck.gl/layers/dist/arc-layer/arc-layer.js [app-ssr] (ecmascript) <export default as ArcLayer>");
 'use client';
 ;
 ;
 ;
 ;
 ;
-const GOOGLE_MAPS_API_KEY = 'AIzaSyALw8hi8WHQy8AuqZXPD2lMkQai1ppnxyM'; // Replace with a valid key
-const API_URL = "http://localhost:5000/heatmap"; // Flask backend
-const BITMAP_API_URL = "http://localhost:5000/bitmap"; // Flask image API
+const GOOGLE_MAPS_API_KEY = "AIzaSyALw8hi8WHQy8AuqZXPD2lMkQai1ppnxyM"; // 🔹 Replace with your API key
+const API_URL = "http://localhost:5000/heatmap";
+const BITMAP_API_URL = "http://localhost:5000/bitmap";
+const ARC_DATA_URL = "http://localhost:5000/arc-data";
+const ZONES_DATA_URL = "http://localhost:5000/zones";
 function HeatMap({ selectedDate, timeRange }) {
     const [data, setData] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])([]);
     const [bitmapImage, setBitmapImage] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(null);
+    const [arcData, setArcData] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])([]);
+    const [zonesData, setZonesData] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])([]);
+    const [googleMap, setGoogleMap] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(null);
     const [loading, setLoading] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(true);
     const [error, setError] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(null);
     const [center, setCenter] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])({
         lat: 25.6518,
         lng: -100.2870
     });
-    // 🔹 Fetch Heatmap Data
+    // ✅ Ensure Google Maps is Initialized
+    (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
+        if ("TURBOPACK compile-time falsy", 0) {
+            "TURBOPACK unreachable";
+        }
+    }, [
+        googleMap
+    ]);
+    // ✅ Fetch Heatmap Data
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
         if (!selectedDate) return;
         setLoading(true);
         setError(null);
-        console.log(`Fetching heatmap data for date: ${selectedDate}, Time Range: ${timeRange[0]}-${timeRange[1]}`);
-        fetch(`${API_URL}?date=${selectedDate}&startHour=${timeRange[0]}&endHour=${timeRange[1]}`).then((res)=>{
-            if (!res.ok) {
-                throw new Error(`HTTP error! Status: ${res.status}`);
-            }
-            return res.json();
-        }).then((json)=>{
-            if (!json || !json.features) {
-                throw new Error("Invalid response format from backend.");
-            }
+        fetch(`${API_URL}?date=${selectedDate}&startHour=${timeRange[0]}&endHour=${timeRange[1]}`).then((res)=>res.json()).then((json)=>{
+            if (!json || !json.features) throw new Error("Invalid response format from backend.");
             const processedData = json.features.map((d)=>({
                     id: d.properties.id,
                     id_person: d.properties.id_person,
-                    lat: d.geometry.coordinates[1],
-                    long: d.geometry.coordinates[0],
+                    lat: parseFloat(d.geometry.coordinates[1]),
+                    long: parseFloat(d.geometry.coordinates[0]),
                     timestamp: d.properties.timestamp
                 }));
             setData(processedData);
@@ -349,113 +356,146 @@ function HeatMap({ selectedDate, timeRange }) {
                     lng: processedData[0].long
                 });
             }
-        }).catch((err)=>{
-            console.error("Error fetching heatmap data:", err);
-            setError(err.message);
-        }).finally(()=>{
-            setLoading(false);
-        });
+        }).catch((err)=>setError(err.message)).finally(()=>setLoading(false));
     }, [
         selectedDate,
         timeRange
-    ]); // ✅ Update heatmap when date or hour changes
-    // 🔹 Fetch Bitmap Image
+    ]);
+    // ✅ Fetch Bitmap Image
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
-        fetch(BITMAP_API_URL).then((res)=>res.json()).then((json)=>{
-            if (json.image) {
-                setBitmapImage(json.image);
-            }
-        }).catch((err)=>console.error("Error fetching bitmap image:", err));
+        fetch(BITMAP_API_URL).then((res)=>res.json()).then((json)=>json.image && setBitmapImage(json.image)).catch((err)=>console.error("Error fetching bitmap image:", err));
+    }, []);
+    // ✅ Fetch Arc Data (Zone Transitions)
+    (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
+        fetch(ARC_DATA_URL).then((res)=>res.json()).then((json)=>{
+            if (!json || !json.arc_data) throw new Error("Invalid ArcLayer response.");
+            setArcData(json.arc_data.map((d)=>({
+                    origin_lat: parseFloat(d.origin_lat),
+                    origin_lon: parseFloat(d.origin_lon),
+                    destination_lat: parseFloat(d.destination_lat),
+                    destination_lon: parseFloat(d.destination_lon),
+                    weight: parseFloat(d.weight)
+                })));
+        }).catch((err)=>console.error("Error fetching arc data:", err));
+    }, []);
+    // ✅ Fetch Zone Polygons
+    (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
+        fetch(ZONES_DATA_URL).then((res)=>res.json()).then((json)=>{
+            if (!json || !json.zones) throw new Error("Invalid Zones response.");
+            setZonesData(JSON.parse(json.zones));
+        }).catch((err)=>console.error("Error fetching zones:", err));
     }, []);
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
-        if (!data.length && !bitmapImage) return;
-        const map = new google.maps.Map(document.getElementById("map-container"), {
-            center: center,
-            zoom: 18,
-            mapTypeId: 'satellite',
-            disableDefaultUI: true
-        });
-        const bitmapLayer = new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$deck$2e$gl$2f$layers$2f$dist$2f$bitmap$2d$layer$2f$bitmap$2d$layer$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__BitmapLayer$3e$__["BitmapLayer"]({
-            id: 'bitmap-layer',
-            bounds: [
-                [
-                    -100.28813684548274,
-                    25.650376387020653
-                ],
-                [
-                    -100.28813684548274,
-                    25.654316647171434
-                ],
-                [
-                    -100.28389981756604,
-                    25.654316647171434
-                ],
-                [
-                    -100.28389981756604,
-                    25.650376387020653
-                ] // Bottom-right
-            ],
-            image: bitmapImage,
-            opacity: 1
-        });
-        const layers = [
-            bitmapLayer
-        ];
-        const heatmapLayer = new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$deck$2e$gl$2f$aggregation$2d$layers$2f$dist$2f$heatmap$2d$layer$2f$heatmap$2d$layer$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__HeatmapLayer$3e$__["HeatmapLayer"]({
-            id: 'heatmap-layer',
-            data,
-            getPosition: (d)=>[
-                    d.long,
-                    d.lat
-                ],
-            getWeight: (d)=>1,
-            aggregation: 'SUM',
-            radiusPixels: 40
-        });
-        layers.push(heatmapLayer);
+        if (!googleMap) return;
+        console.log("✅ Rendering Deck.GL Layers...");
         const overlay = new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$deck$2e$gl$2f$google$2d$maps$2f$dist$2f$google$2d$maps$2d$overlay$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__GoogleMapsOverlay$3e$__["GoogleMapsOverlay"]({
-            layers
+            layers: [
+                bitmapImage && new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$deck$2e$gl$2f$layers$2f$dist$2f$bitmap$2d$layer$2f$bitmap$2d$layer$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__BitmapLayer$3e$__["BitmapLayer"]({
+                    id: 'bitmap-layer',
+                    bounds: [
+                        [
+                            -100.28813684548274,
+                            25.650376387020653
+                        ],
+                        [
+                            -100.28813684548274,
+                            25.654316647171434
+                        ],
+                        [
+                            -100.28389981756604,
+                            25.654316647171434
+                        ],
+                        [
+                            -100.28389981756604,
+                            25.650376387020653
+                        ]
+                    ],
+                    image: bitmapImage,
+                    opacity: 1
+                }),
+                new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$deck$2e$gl$2f$layers$2f$dist$2f$geojson$2d$layer$2f$geojson$2d$layer$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__GeoJsonLayer$3e$__["GeoJsonLayer"]({
+                    id: "zones-layer",
+                    data: zonesData,
+                    getFillColor: [
+                        100,
+                        150,
+                        250,
+                        100
+                    ],
+                    getLineColor: [
+                        0,
+                        0,
+                        0,
+                        255
+                    ],
+                    getLineWidth: 2,
+                    pickable: true
+                }),
+                new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$deck$2e$gl$2f$aggregation$2d$layers$2f$dist$2f$heatmap$2d$layer$2f$heatmap$2d$layer$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__HeatmapLayer$3e$__["HeatmapLayer"]({
+                    id: 'heatmap-layer',
+                    data,
+                    getPosition: (d)=>[
+                            d.long,
+                            d.lat
+                        ],
+                    getWeight: (d)=>1,
+                    aggregation: 'SUM',
+                    radiusPixels: 40
+                }),
+                new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$deck$2e$gl$2f$layers$2f$dist$2f$arc$2d$layer$2f$arc$2d$layer$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__ArcLayer$3e$__["ArcLayer"]({
+                    id: 'arc-layer',
+                    data: arcData,
+                    getSourcePosition: (d)=>[
+                            d.origin_lon,
+                            d.origin_lat
+                        ],
+                    getTargetPosition: (d)=>[
+                            d.destination_lon,
+                            d.destination_lat
+                        ],
+                    getWidth: (d)=>Math.max(1, d.weight * 0.1),
+                    getSourceColor: [
+                        0,
+                        0,
+                        255
+                    ],
+                    getTargetColor: [
+                        255,
+                        0,
+                        0
+                    ],
+                    pickable: true
+                })
+            ].filter(Boolean)
         });
-        overlay.setMap(map);
+        overlay.setMap(googleMap);
     }, [
+        googleMap,
         data,
-        center,
-        bitmapImage
-    ]); // ✅ Updates when data or image changes
+        bitmapImage,
+        zonesData,
+        arcData
+    ]);
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-        className: "relative w-full h-[500px] rounded-lg overflow-hidden",
-        children: [
-            loading && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                className: "text-center",
-                children: "Loading heatmap..."
-            }, void 0, false, {
-                fileName: "[project]/src/app/components/charts/HeatMap.tsx",
-                lineNumber: 126,
-                columnNumber: 19
-            }, this),
-            error && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                className: "text-center text-red-500",
-                children: [
-                    "Error: ",
-                    error
-                ]
-            }, void 0, true, {
-                fileName: "[project]/src/app/components/charts/HeatMap.tsx",
-                lineNumber: 127,
-                columnNumber: 17
-            }, this),
-            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+        className: "relative w-full",
+        children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+            className: "h-[500px] w-full rounded-lg overflow-hidden border border-gray-300 relative",
+            children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                 id: "map-container",
-                className: "absolute inset-0"
+                className: "h-full w-full"
             }, void 0, false, {
                 fileName: "[project]/src/app/components/charts/HeatMap.tsx",
-                lineNumber: 128,
-                columnNumber: 7
+                lineNumber: 162,
+                columnNumber: 9
             }, this)
-        ]
-    }, void 0, true, {
+        }, void 0, false, {
+            fileName: "[project]/src/app/components/charts/HeatMap.tsx",
+            lineNumber: 161,
+            columnNumber: 7
+        }, this)
+    }, void 0, false, {
         fileName: "[project]/src/app/components/charts/HeatMap.tsx",
-        lineNumber: 125,
+        lineNumber: 160,
         columnNumber: 5
     }, this);
 }
