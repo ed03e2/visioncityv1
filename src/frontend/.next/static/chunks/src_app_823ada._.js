@@ -411,10 +411,11 @@ function HeatMap({ selectedDate, timeRange }) {
             }["HeatMap.useEffect"]);
         }
     }["HeatMap.useEffect"], []);
-    // ✅ Fetch Arc Data (Zone Transitions)
+    // ✅ Fetch Arc Data (Filtered by Date and Time Range)
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useEffect"])({
         "HeatMap.useEffect": ()=>{
-            fetch(ARC_DATA_URL).then({
+            if (!selectedDate) return;
+            fetch(`${ARC_DATA_URL}?date=${selectedDate}&startHour=${timeRange[0]}&endHour=${timeRange[1]}`).then({
                 "HeatMap.useEffect": (res)=>res.json()
             }["HeatMap.useEffect"]).then({
                 "HeatMap.useEffect": (json)=>{
@@ -433,7 +434,10 @@ function HeatMap({ selectedDate, timeRange }) {
                 "HeatMap.useEffect": (err)=>console.error("Error fetching arc data:", err)
             }["HeatMap.useEffect"]);
         }
-    }["HeatMap.useEffect"], []);
+    }["HeatMap.useEffect"], [
+        selectedDate,
+        timeRange
+    ]);
     // ✅ Fetch Zone Polygons
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useEffect"])({
         "HeatMap.useEffect": ()=>{
@@ -561,17 +565,17 @@ function HeatMap({ selectedDate, timeRange }) {
                 className: "h-full w-full"
             }, void 0, false, {
                 fileName: "[project]/src/app/components/charts/HeatMap.tsx",
-                lineNumber: 162,
+                lineNumber: 165,
                 columnNumber: 9
             }, this)
         }, void 0, false, {
             fileName: "[project]/src/app/components/charts/HeatMap.tsx",
-            lineNumber: 161,
+            lineNumber: 164,
             columnNumber: 7
         }, this)
     }, void 0, false, {
         fileName: "[project]/src/app/components/charts/HeatMap.tsx",
-        lineNumber: 160,
+        lineNumber: 163,
         columnNumber: 5
     }, this);
 }
@@ -706,7 +710,7 @@ function DashboardPage() {
                     if (data.available_dates.length > 0) {
                         const firstAvailableDate = data.available_dates.includes(getTodayDate()) ? getTodayDate() : data.available_dates[0];
                         setAvailableDates(data.available_dates);
-                        setSelectedDate(firstAvailableDate);
+                        setSelectedDate(firstAvailableDate); // ✅ Ensure we select the first available date
                     }
                 }
             }["DashboardPage.useEffect"]).catch({
@@ -727,7 +731,7 @@ function DashboardPage() {
                 children: "Dashboard"
             }, void 0, false, {
                 fileName: "[project]/src/app/dashboard/setting/page.tsx",
-                lineNumber: 47,
+                lineNumber: 48,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -738,7 +742,7 @@ function DashboardPage() {
                         children: "Analytics"
                     }, void 0, false, {
                         fileName: "[project]/src/app/dashboard/setting/page.tsx",
-                        lineNumber: 50,
+                        lineNumber: 51,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -747,18 +751,6 @@ function DashboardPage() {
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                 className: "flex-1 min-w-[250px]",
                                 children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$components$2f$charts$2f$BarChart$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["BarChart"], {}, void 0, false, {
-                                    fileName: "[project]/src/app/dashboard/setting/page.tsx",
-                                    lineNumber: 52,
-                                    columnNumber: 49
-                                }, this)
-                            }, void 0, false, {
-                                fileName: "[project]/src/app/dashboard/setting/page.tsx",
-                                lineNumber: 52,
-                                columnNumber: 11
-                            }, this),
-                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                className: "flex-1 min-w-[250px]",
-                                children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$components$2f$charts$2f$LineChart$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["LineChart"], {}, void 0, false, {
                                     fileName: "[project]/src/app/dashboard/setting/page.tsx",
                                     lineNumber: 53,
                                     columnNumber: 49
@@ -770,7 +762,7 @@ function DashboardPage() {
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                 className: "flex-1 min-w-[250px]",
-                                children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$components$2f$charts$2f$PieChart$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["PieChart"], {}, void 0, false, {
+                                children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$components$2f$charts$2f$LineChart$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["LineChart"], {}, void 0, false, {
                                     fileName: "[project]/src/app/dashboard/setting/page.tsx",
                                     lineNumber: 54,
                                     columnNumber: 49
@@ -779,17 +771,29 @@ function DashboardPage() {
                                 fileName: "[project]/src/app/dashboard/setting/page.tsx",
                                 lineNumber: 54,
                                 columnNumber: 11
+                            }, this),
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                className: "flex-1 min-w-[250px]",
+                                children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$components$2f$charts$2f$PieChart$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["PieChart"], {}, void 0, false, {
+                                    fileName: "[project]/src/app/dashboard/setting/page.tsx",
+                                    lineNumber: 55,
+                                    columnNumber: 49
+                                }, this)
+                            }, void 0, false, {
+                                fileName: "[project]/src/app/dashboard/setting/page.tsx",
+                                lineNumber: 55,
+                                columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/app/dashboard/setting/page.tsx",
-                        lineNumber: 51,
+                        lineNumber: 52,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/app/dashboard/setting/page.tsx",
-                lineNumber: 49,
+                lineNumber: 50,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -803,7 +807,7 @@ function DashboardPage() {
                                 children: "Filter"
                             }, void 0, false, {
                                 fileName: "[project]/src/app/dashboard/setting/page.tsx",
-                                lineNumber: 61,
+                                lineNumber: 62,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$components$2f$filters$2f$Calendar$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Calendar"], {
@@ -812,7 +816,7 @@ function DashboardPage() {
                                 disabledDates: availableDates
                             }, void 0, false, {
                                 fileName: "[project]/src/app/dashboard/setting/page.tsx",
-                                lineNumber: 62,
+                                lineNumber: 63,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$components$2f$filters$2f$RangeSlider$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
@@ -820,13 +824,13 @@ function DashboardPage() {
                                 onChange: setTimeRange
                             }, void 0, false, {
                                 fileName: "[project]/src/app/dashboard/setting/page.tsx",
-                                lineNumber: 63,
+                                lineNumber: 64,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/app/dashboard/setting/page.tsx",
-                        lineNumber: 60,
+                        lineNumber: 61,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -837,7 +841,7 @@ function DashboardPage() {
                                 children: "Map"
                             }, void 0, false, {
                                 fileName: "[project]/src/app/dashboard/setting/page.tsx",
-                                lineNumber: 67,
+                                lineNumber: 68,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$components$2f$charts$2f$HeatMap$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
@@ -845,25 +849,25 @@ function DashboardPage() {
                                 timeRange: timeRange
                             }, void 0, false, {
                                 fileName: "[project]/src/app/dashboard/setting/page.tsx",
-                                lineNumber: 68,
+                                lineNumber: 69,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/app/dashboard/setting/page.tsx",
-                        lineNumber: 66,
+                        lineNumber: 67,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/app/dashboard/setting/page.tsx",
-                lineNumber: 59,
+                lineNumber: 60,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/src/app/dashboard/setting/page.tsx",
-        lineNumber: 46,
+        lineNumber: 47,
         columnNumber: 5
     }, this);
 }
