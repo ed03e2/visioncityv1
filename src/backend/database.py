@@ -48,9 +48,9 @@ def get_zone_transitions():
     except Exception as e:
         return {"error": f"Error fetching transitions: {str(e)}"}
 
-# ✅ Generate ArcLayer Data (Restored psycopg2)
+# ✅ Generate OD Matrix for ArcLayer
 def generate_arc_layer(date_filter, start_hour, end_hour):
-    """Generate ArcLayer JSON for Deck.GL visualization with filters."""
+    """Generate an Origin-Destination matrix based on first and last transitions per person."""
     try:
         zones_gdf = get_zones()
         
@@ -58,24 +58,50 @@ def generate_arc_layer(date_filter, start_hour, end_hour):
             return {"error": zones_gdf["error"]}
 
         conn = psycopg2.connect(**POSTGIS_CONN)
+
+        # ✅ Get First & Last Transition per Person, Exclude 'APE_24' if necessary
         sql = """
-            SELECT origin_zone_id, destination_zone_id, COUNT(*) as weight
-            FROM zone_transitions
-            WHERE DATE(first_timestamp) = %s
-            AND EXTRACT(HOUR FROM first_timestamp) BETWEEN %s AND %s
-            AND origin_zone_id != 'APE_24'  -- Exclude APE_24 as origin
-            AND destination_zone_id != 'APE_24'  -- Exclude APE_24 as destination
-            GROUP BY origin_zone_id, destination_zone_id;
+            WITH ranked_transitions AS (
+                SELECT 
+                    id_person, 
+                    first_timestamp, 
+                    last_timestamp, 
+                    origin_zone_id, 
+                    destination_zone_id, 
+                    duration_seconds,
+                    ROW_NUMBER() OVER (PARTITION BY id_person ORDER BY first_timestamp ASC) AS row_first,
+                    ROW_NUMBER() OVER (PARTITION BY id_person ORDER BY last_timestamp DESC) AS row_last
+                FROM zone_transitions
+                WHERE DATE(first_timestamp) = %s 
+                AND EXTRACT(HOUR FROM first_timestamp) BETWEEN %s AND %s
+                AND duration_seconds BETWEEN 1 AND 2000
+            )
+            SELECT 
+                first_t.id_person, 
+                first_t.origin_zone_id AS origin_zone, 
+                last_t.destination_zone_id AS destination_zone, 
+                first_t.first_timestamp AS first_time, 
+                last_t.last_timestamp AS last_time
+            FROM ranked_transitions first_t
+            JOIN ranked_transitions last_t ON first_t.id_person = last_t.id_person
+            WHERE first_t.row_first = 1 AND last_t.row_last = 1
+            AND first_t.origin_zone_id != 'APE_24'
+            AND last_t.destination_zone_id != 'APE_24';
         """
+
         transitions_df = pd.read_sql(sql, conn, params=(date_filter, start_hour, end_hour))
         conn.close()
 
         if transitions_df.empty:
             return {"error": "No filtered transitions found in database"}
 
-        # Ensure proper projection
+        # ✅ Compute OD Matrix (Counts of Origin-Destination Pairs)
+        od_matrix = transitions_df.groupby(["origin_zone", "destination_zone"]).size().reset_index(name="weight")
+
+        # ✅ Ensure proper projection
         zones_gdf["centroid"] = zones_gdf["geom"].to_crs(epsg=4326).centroid
 
+        # ✅ Map zone centroids to zones
         zone_centroids = {
             row.zone_id: {"lon": row.centroid.x, "lat": row.centroid.y}
             for _, row in zones_gdf.iterrows()
@@ -85,13 +111,13 @@ def generate_arc_layer(date_filter, start_hour, end_hour):
         arc_data = []
         missing_zones = set()
 
-        for _, row in transitions_df.iterrows():
-            origin = zone_centroids.get(row.origin_zone_id)
-            destination = zone_centroids.get(row.destination_zone_id)
+        for _, row in od_matrix.iterrows():
+            origin = zone_centroids.get(row.origin_zone)
+            destination = zone_centroids.get(row.destination_zone)
 
             if not origin or not destination:
-                missing_zones.add(row.origin_zone_id)
-                missing_zones.add(row.destination_zone_id)
+                missing_zones.add(row.origin_zone)
+                missing_zones.add(row.destination_zone)
                 continue
 
             arc_data.append({
@@ -99,7 +125,7 @@ def generate_arc_layer(date_filter, start_hour, end_hour):
                 "origin_lon": origin["lon"],
                 "destination_lat": destination["lat"],
                 "destination_lon": destination["lon"],
-                "weight": row.weight
+                "weight": row.weight  # ✅ OD Matrix Weight (Counts)
             })
 
         if missing_zones:
