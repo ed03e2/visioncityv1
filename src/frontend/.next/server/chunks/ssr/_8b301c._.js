@@ -41,7 +41,7 @@ function Places() {
         children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
             className: "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 justify-center mt-24",
             children: places.map((place)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                    className: "w-full max-w-[441px] h-[644px] bg-[#efeff6] rounded-[2px] shadow-md  overflow-hidden transition-transform duration-200 ease-in-out hover:-translate-y-1 flex flex-col mx-auto sm:w-[441px] md:w-[441px] md:h-[644px]",
+                    className: "w-full max-w-[441px] h-[644px] bg-[#efeff6] rounded-[2px] shadow-md    overflow-hidden transition-transform duration-200 ease-in-out hover:-translate-y-1   flex flex-col mx-auto   sm:w-[441px] md:w-[441px]   md:h-[644px]",
                     children: [
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                             className: "w-full h-[250px] overflow-hidden",
@@ -96,7 +96,7 @@ function Places() {
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$app$2d$dir$2f$link$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["default"], {
                                     href: `/analytic`,
-                                    className: "w-full py-4 bg-white text-black text-base font-medium  rounded hover:bg-blue-600 hover:text-white transition-all duration-200 mt-auto text-center",
+                                    className: "w-full py-4 bg-white text-black text-base font-medium    rounded hover:bg-blue-600 hover:text-white transition-all duration-200   mt-auto text-center",
                                     children: "Access Space"
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/dashboard/page.tsx",
