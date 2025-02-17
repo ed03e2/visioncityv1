@@ -63,6 +63,8 @@ def generate_arc_layer(date_filter, start_hour, end_hour):
             FROM zone_transitions
             WHERE DATE(first_timestamp) = %s
             AND EXTRACT(HOUR FROM first_timestamp) BETWEEN %s AND %s
+            AND origin_zone_id != 'APE_24'  -- Exclude APE_24 as origin
+            AND destination_zone_id != 'APE_24'  -- Exclude APE_24 as destination
             GROUP BY origin_zone_id, destination_zone_id;
         """
         transitions_df = pd.read_sql(sql, conn, params=(date_filter, start_hour, end_hour))
