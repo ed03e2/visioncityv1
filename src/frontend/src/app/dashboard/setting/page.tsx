@@ -28,13 +28,14 @@ export default function DashboardPage() {
           const firstAvailableDate = data.available_dates.includes(getTodayDate())
             ? getTodayDate()
             : data.available_dates[0];
-
+  
           setAvailableDates(data.available_dates);
-          setSelectedDate(firstAvailableDate);
+          setSelectedDate(firstAvailableDate); // ✅ Ensure we select the first available date
         }
       })
       .catch((err) => console.error("Error fetching available dates:", err));
   }, []);
+  
 
   const handleDateChange = (date: string) => {
     if (availableDates.includes(date)) {

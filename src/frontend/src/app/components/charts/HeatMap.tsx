@@ -73,9 +73,11 @@ export default function HeatMap({ selectedDate, timeRange }: { selectedDate: str
       .catch(err => console.error("Error fetching bitmap image:", err));
   }, []);
 
-  // ✅ Fetch Arc Data (Zone Transitions)
+  // ✅ Fetch Arc Data (Filtered by Date and Time Range)
   useEffect(() => {
-    fetch(ARC_DATA_URL)
+    if (!selectedDate) return;
+
+    fetch(`${ARC_DATA_URL}?date=${selectedDate}&startHour=${timeRange[0]}&endHour=${timeRange[1]}`)
       .then(res => res.json())
       .then(json => {
         if (!json || !json.arc_data) throw new Error("Invalid ArcLayer response.");
@@ -90,7 +92,8 @@ export default function HeatMap({ selectedDate, timeRange }: { selectedDate: str
         );
       })
       .catch(err => console.error("Error fetching arc data:", err));
-  }, []);
+  }, [selectedDate, timeRange]);
+
 
   // ✅ Fetch Zone Polygons
   useEffect(() => {
@@ -142,12 +145,12 @@ export default function HeatMap({ selectedDate, timeRange }: { selectedDate: str
 
         new ArcLayer({
           id: 'arc-layer',
-          data: arcData,
+          data: arcData, // ✅ This now contains filtered data
           getSourcePosition: (d) => [d.origin_lon, d.origin_lat],
           getTargetPosition: (d) => [d.destination_lon, d.destination_lat],
-          getWidth: (d) => Math.max(1, d.weight * 0.1),
-          getSourceColor: [0, 0, 255],
-          getTargetColor: [255, 0, 0],
+          getWidth: (d) => Math.max(1, d.weight * 0.1), // Adjust line thickness based on weight
+          getSourceColor: [0, 0, 255], // Blue for source
+          getTargetColor: [255, 0, 0], // Red for target
           pickable: true,
         }),
       ].filter(Boolean)

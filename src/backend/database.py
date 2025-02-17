@@ -49,16 +49,27 @@ def get_zone_transitions():
         return {"error": f"Error fetching transitions: {str(e)}"}
 
 # ✅ Generate ArcLayer Data (Restored psycopg2)
-def generate_arc_layer():
-    """Generate ArcLayer JSON for Deck.GL visualization."""
+def generate_arc_layer(date_filter, start_hour, end_hour):
+    """Generate ArcLayer JSON for Deck.GL visualization with filters."""
     try:
         zones_gdf = get_zones()
-        transitions_df = get_zone_transitions()
-
+        
         if isinstance(zones_gdf, dict) and "error" in zones_gdf:
             return {"error": zones_gdf["error"]}
-        if isinstance(transitions_df, dict) and "error" in transitions_df:
-            return {"error": transitions_df["error"]}
+
+        conn = psycopg2.connect(**POSTGIS_CONN)
+        sql = """
+            SELECT origin_zone_id, destination_zone_id, COUNT(*) as weight
+            FROM zone_transitions
+            WHERE DATE(first_timestamp) = %s
+            AND EXTRACT(HOUR FROM first_timestamp) BETWEEN %s AND %s
+            GROUP BY origin_zone_id, destination_zone_id;
+        """
+        transitions_df = pd.read_sql(sql, conn, params=(date_filter, start_hour, end_hour))
+        conn.close()
+
+        if transitions_df.empty:
+            return {"error": "No filtered transitions found in database"}
 
         # Ensure proper projection
         zones_gdf["centroid"] = zones_gdf["geom"].to_crs(epsg=4326).centroid
@@ -66,12 +77,12 @@ def generate_arc_layer():
         zone_centroids = {
             row.zone_id: {"lon": row.centroid.x, "lat": row.centroid.y}
             for _, row in zones_gdf.iterrows()
-            if not row.centroid.is_empty  # Ignore empty centroids
+            if not row.centroid.is_empty
         }
 
         arc_data = []
         missing_zones = set()
-        
+
         for _, row in transitions_df.iterrows():
             origin = zone_centroids.get(row.origin_zone_id)
             destination = zone_centroids.get(row.destination_zone_id)
@@ -101,13 +112,13 @@ def generate_arc_layer():
 def get_filtered_data(date_filter, start_hour, end_hour):
     """Fetch person observation data for heatmap filtering by date and time."""
     try:
-        engine = create_engine(POSTGIS_CONN_STRING)
+        conn = psycopg2.connect(**POSTGIS_CONN)
         SQL_QUERY = """
             SELECT id, id_person, lat, long, timestamp
             FROM person_observed
             WHERE DATE(timestamp) = %s AND EXTRACT(HOUR FROM timestamp) BETWEEN %s AND %s;
         """
-        df = pd.read_sql(SQL_QUERY, engine, params=(date_filter, start_hour, end_hour))
+        df = pd.read_sql(SQL_QUERY, conn, params=(date_filter, start_hour, end_hour))
 
         features = [
             {
@@ -126,9 +137,17 @@ def get_filtered_data(date_filter, start_hour, end_hour):
 def get_available_dates():
     """Fetch distinct dates where person observations exist."""
     try:
-        engine = create_engine(POSTGIS_CONN_STRING)
-        SQL_QUERY = "SELECT DISTINCT DATE(timestamp) FROM person_observed ORDER BY DATE(timestamp);"
-        df = pd.read_sql(SQL_QUERY, engine)
+        conn = psycopg2.connect(**POSTGIS_CONN)
+        SQL_QUERY = """
+            SELECT DISTINCT date FROM (
+                SELECT DATE(timestamp) as date FROM person_observed
+                UNION
+                SELECT DATE(first_timestamp) as date FROM zone_transitions
+            ) AS combined_dates
+            ORDER BY date;
+        """
+
+        df = pd.read_sql(SQL_QUERY, conn)
 
         return [row[0].strftime("%Y-%m-%d") for _, row in df.iterrows()]
     except Exception as e:

@@ -21,20 +21,34 @@ def get_heatmap():
 
 @app.route("/available-dates", methods=["GET"])
 def get_available_dates_route():
-    """Return available dates with data."""
-    return jsonify({"available_dates": get_available_dates()})
+    """Return available dates based on both person observations and zone transitions."""
+    available_dates = get_available_dates()
+
+    if "error" in available_dates:
+        return jsonify({"error": available_dates["error"]}), 500
+
+    return jsonify({"available_dates": available_dates})
+
 
 @app.route("/arc-data", methods=["GET"])
 def get_arc_data():
-    """Fetch ArcLayer data."""
-    arc_data = generate_arc_layer()
-    
+    """Fetch ArcLayer data filtered by date and time."""
+    date = request.args.get("date")
+    start_hour = request.args.get("startHour", default=0, type=int)
+    end_hour = request.args.get("endHour", default=23, type=int)
+
+    if not date:
+        return jsonify({"error": "Missing date parameter"}), 400
+
+    arc_data = generate_arc_layer(date, start_hour, end_hour)
+
     if "error" in arc_data:
-        print(f"❌ ERROR in /arc-data: {arc_data['error']}")  # ✅ Debugging
+        print(f"❌ ERROR in /arc-data: {arc_data['error']}")  # Debugging
         return jsonify({"error": arc_data["error"]}), 500
-    
-    print("✅ ArcLayer Data Fetched Successfully")  # ✅ Debugging
+
+    print("✅ ArcLayer Data Fetched Successfully")  # Debugging
     return jsonify(arc_data)
+
 
 
 @app.route("/bitmap", methods=["GET"])
