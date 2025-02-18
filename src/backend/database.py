@@ -13,6 +13,8 @@ POSTGIS_CONN = {
 }
 
 # ✅ Fetch Zones (Using psycopg2)
+
+
 def get_zones():
     """Fetch zone polygons from the database."""
     try:
@@ -29,6 +31,8 @@ def get_zones():
         return {"error": f"Error fetching zones: {str(e)}"}
 
 # ✅ Fetch Zone Transitions (Using psycopg2)
+
+
 def get_zone_transitions():
     """Fetch movement transitions between zones."""
     try:
@@ -49,19 +53,21 @@ def get_zone_transitions():
         return {"error": f"Error fetching transitions: {str(e)}"}
 
 # ✅ Generate OD Matrix for ArcLayer
+
+
 def generate_arc_layer(date_filter, start_hour, end_hour):
     """Generate an Origin-Destination matrix based on first and last transitions per person."""
     try:
         zones_gdf = get_zones()
-        
+
         if isinstance(zones_gdf, dict) and "error" in zones_gdf:
             return {"error": zones_gdf["error"]}
 
         conn = psycopg2.connect(**POSTGIS_CONN)
 
         # ✅ Get First & Last Transition per Person, Exclude 'APE_24' if necessary
-        sql = """
-            WITH ranked_transitions AS (
+        sql = """             
+        WITH ranked_transitions AS (
                 SELECT 
                     id_person, 
                     first_timestamp, 
@@ -89,14 +95,16 @@ def generate_arc_layer(date_filter, start_hour, end_hour):
             AND last_t.destination_zone_id != 'APE_24';
         """
 
-        transitions_df = pd.read_sql(sql, conn, params=(date_filter, start_hour, end_hour))
+        transitions_df = pd.read_sql(
+            sql, conn, params=(date_filter, start_hour, end_hour))
         conn.close()
 
         if transitions_df.empty:
             return {"error": "No filtered transitions found in database"}
 
         # ✅ Compute OD Matrix (Counts of Origin-Destination Pairs)
-        od_matrix = transitions_df.groupby(["origin_zone", "destination_zone"]).size().reset_index(name="weight")
+        od_matrix = transitions_df.groupby(
+            ["origin_zone", "destination_zone"]).size().reset_index(name="weight")
 
         # ✅ Ensure proper projection
         zones_gdf["centroid"] = zones_gdf["geom"].to_crs(epsg=4326).centroid
@@ -146,7 +154,8 @@ def get_filtered_data(date_filter, start_hour, end_hour):
             FROM person_observed
             WHERE DATE(timestamp) = %s AND EXTRACT(HOUR FROM timestamp) BETWEEN %s AND %s;
         """
-        df = pd.read_sql(SQL_QUERY, conn, params=(date_filter, start_hour, end_hour))
+        df = pd.read_sql(SQL_QUERY, conn, params=(
+            date_filter, start_hour, end_hour))
 
         features = [
             {
@@ -162,6 +171,8 @@ def get_filtered_data(date_filter, start_hour, end_hour):
         return {"error": str(e)}
 
 # ✅ Fetch Available Dates
+
+
 def get_available_dates():
     """Fetch distinct dates where person observations exist."""
     try:
@@ -178,5 +189,41 @@ def get_available_dates():
         df = pd.read_sql(SQL_QUERY, conn)
 
         return [row[0].strftime("%Y-%m-%d") for _, row in df.iterrows()]
+    except Exception as e:
+        return {"error": str(e)}
+
+
+def get_duration_times_by_zone(date_filter, start_hour, end_hour):
+    """Fetch duration times by zone."""
+    try:
+        conn = psycopg2.connect(**POSTGIS_CONN)
+        SQL_QUERY = """
+            SELECT percentile_cont(0.5) WITHIN GROUP (ORDER BY duration_seconds) as median_duration, origin_zone_id 
+            FROM zone_transitions 
+            WHERE DATE(first_timestamp) = %s 
+            AND EXTRACT(HOUR FROM first_timestamp) BETWEEN %s AND %s 
+            AND duration_seconds BETWEEN 1 AND 2000
+            GROUP BY origin_zone_id 
+        """
+        print(SQL_QUERY)
+        df = pd.read_sql(SQL_QUERY, conn, params=(
+            date_filter, start_hour, end_hour))
+        print(df, "df")
+        res = [{"zone": row.origin_zone_id, "duration": row.median_duration}
+               for _, row in df.iterrows()]
+
+        SQL_QUERY = """
+            SELECT 0 as median_duration, zone_id 
+            FROM zones
+            WHERE zone_id NOT IN (SELECT origin_zone_id FROM zone_transitions WHERE DATE(first_timestamp) = %s AND EXTRACT(HOUR FROM first_timestamp) BETWEEN %s AND %s)
+        """
+
+        df = pd.read_sql(SQL_QUERY, conn, params=(
+            date_filter, start_hour, end_hour))
+
+        res = [{"zone": row.zone_id, "duration": row.median_duration}
+               for _, row in df.iterrows()] + res
+
+        return res
     except Exception as e:
         return {"error": str(e)}

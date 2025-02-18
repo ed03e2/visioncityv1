@@ -2,10 +2,11 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import json
 import base64
-from database import get_filtered_data, get_available_dates, generate_arc_layer, get_zones
+from database import get_filtered_data, get_available_dates, generate_arc_layer, get_zones, get_duration_times_by_zone
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
+
 
 @app.route("/heatmap", methods=["GET"])
 def get_heatmap():
@@ -18,6 +19,7 @@ def get_heatmap():
         return jsonify({"error": "Missing date parameter"}), 400
 
     return jsonify(get_filtered_data(date, start_hour, end_hour))
+
 
 @app.route("/available-dates", methods=["GET"])
 def get_available_dates_route():
@@ -50,7 +52,6 @@ def get_arc_data():
     return jsonify(arc_data)
 
 
-
 @app.route("/bitmap", methods=["GET"])
 def get_bitmap():
     """Serve the image as a Base64 string."""
@@ -61,6 +62,7 @@ def get_bitmap():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+
 @app.route("/zones", methods=["GET"])
 def get_zones_route():
     """Fetch zone polygons."""
@@ -68,6 +70,19 @@ def get_zones_route():
     if "error" in zones_data:
         return jsonify({"error": zones_data["error"]}), 500
     return jsonify({"zones": zones_data.to_json()})  # ✅ Returns GeoJSON
+
+
+@app.route("/duration-times", methods=["GET"])
+def get_zones_durations():
+    """Fetch zone polygons."""
+    date = request.args.get("date")
+    start_hour = request.args.get("startHour", default=0, type=int)
+    end_hour = request.args.get("endHour", default=23, type=int)
+
+    if not date or not start_hour or not end_hour or start_hour >= end_hour:
+        return jsonify({"error": f"Invalid input: {'null date' if not date else ''}{', null startHour' if not start_hour else ''}{', null endHour' if not end_hour else ''}{', startHour >= endHour' if start_hour >= end_hour else ''}"}, 400)
+
+    return jsonify(get_duration_times_by_zone(date, start_hour, end_hour))
 
 
 if __name__ == "__main__":
