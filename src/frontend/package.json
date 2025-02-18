@@ -15,6 +15,7 @@
     "@deck.gl/google-maps": "^9.1.1",
     "@deck.gl/layers": "^9.1.1",
     "@deck.gl/react": "^9.1.1",
+    "@headlessui/react": "^2.2.0",
     "@tabler/icons-react": "^3.29.0",
     "@visx/group": "^3.12.0",
     "@visx/heatmap": "^3.12.0",
