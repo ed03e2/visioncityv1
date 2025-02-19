@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import json
 import base64
-from database import get_filtered_data, get_available_dates, generate_arc_layer, get_zones, get_duration_times_by_zone
+from database import get_filtered_data, get_available_dates, generate_arc_layer, get_zones, get_duration_times_by_zone, get_arc_and_duration_data
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
@@ -50,6 +50,22 @@ def get_arc_data():
 
     print("✅ ArcLayer Data Fetched Successfully")  # Debugging
     return jsonify(arc_data)
+
+@app.route("/arc-and-duration", methods=["GET"])
+def get_arc_and_duration():
+    """Fetch Arc Layer (OD Matrix) and Duration Data in One Request."""
+    date = request.args.get("date")
+    start_hour = request.args.get("startHour", default=0, type=int)
+    end_hour = request.args.get("endHour", default=23, type=int)
+
+    if not date:
+        return jsonify({"error": "Missing date parameter"}), 400
+
+    response = get_arc_and_duration_data(date, start_hour, end_hour)
+    if "error" in response:
+        return jsonify({"error": response["error"]}), 500
+
+    return jsonify(response)
 
 
 @app.route("/bitmap", methods=["GET"])

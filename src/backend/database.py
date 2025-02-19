@@ -30,28 +30,6 @@ def get_zones():
     except Exception as e:
         return {"error": f"Error fetching zones: {str(e)}"}
 
-# ✅ Fetch Zone Transitions (Using psycopg2)
-
-
-def get_zone_transitions():
-    """Fetch movement transitions between zones."""
-    try:
-        conn = psycopg2.connect(**POSTGIS_CONN)
-        sql = """
-            SELECT origin_zone_id, destination_zone_id, COUNT(*) as weight
-            FROM zone_transitions
-            GROUP BY origin_zone_id, destination_zone_id;
-        """
-        transitions_df = pd.read_sql(sql, conn)
-        conn.close()
-
-        if transitions_df.empty:
-            return {"error": "No transitions found in database"}
-
-        return transitions_df
-    except Exception as e:
-        return {"error": f"Error fetching transitions: {str(e)}"}
-
 # ✅ Generate OD Matrix for ArcLayer
 
 
@@ -80,7 +58,7 @@ def generate_arc_layer(date_filter, start_hour, end_hour):
                 FROM zone_transitions
                 WHERE DATE(first_timestamp) = %s 
                 AND EXTRACT(HOUR FROM first_timestamp) BETWEEN %s AND %s
-                AND duration_seconds BETWEEN 1 AND 2000
+                AND duration_seconds BETWEEN .3 AND 4000
             )
             SELECT 
                 first_t.id_person, 
@@ -171,8 +149,6 @@ def get_filtered_data(date_filter, start_hour, end_hour):
         return {"error": str(e)}
 
 # ✅ Fetch Available Dates
-
-
 def get_available_dates():
     """Fetch distinct dates where person observations exist."""
     try:
@@ -227,3 +203,108 @@ def get_duration_times_by_zone(date_filter, start_hour, end_hour):
         return res
     except Exception as e:
         return {"error": str(e)}
+
+
+def get_arc_and_duration_data(date_filter, start_hour, end_hour):
+    """Fetch Arc Layer (OD Matrix) and Zone Duration Data in a Single Query"""
+    try:
+        conn = psycopg2.connect(**POSTGIS_CONN)
+        cursor = conn.cursor()
+
+        sql = """
+        WITH ranked_transitions AS (
+            SELECT 
+                id_person, 
+                first_timestamp, 
+                last_timestamp, 
+                origin_zone_id, 
+                destination_zone_id, 
+                duration_seconds,
+                ROW_NUMBER() OVER (PARTITION BY id_person ORDER BY first_timestamp ASC) AS row_first,
+                ROW_NUMBER() OVER (PARTITION BY id_person ORDER BY last_timestamp DESC) AS row_last
+            FROM zone_transitions
+            WHERE DATE(first_timestamp) = %s 
+            AND EXTRACT(HOUR FROM first_timestamp) BETWEEN %s AND %s
+            AND duration_seconds BETWEEN 1 AND 4000
+        ),
+        od_matrix AS (
+            SELECT 
+                first_t.origin_zone_id AS origin_zone, 
+                last_t.destination_zone_id AS destination_zone,
+                COUNT(*) AS weight
+            FROM ranked_transitions first_t
+            JOIN ranked_transitions last_t 
+                ON first_t.id_person = last_t.id_person
+            WHERE first_t.row_first = 1 
+            AND last_t.row_last = 1
+            AND first_t.origin_zone_id != 'APE_24' 
+            AND last_t.destination_zone_id != 'APE_24'
+            GROUP BY first_t.origin_zone_id, last_t.destination_zone_id
+        ),
+        zone_durations AS (
+            SELECT 
+                origin_zone_id,
+                percentile_cont(0.5) WITHIN GROUP (ORDER BY duration_seconds) AS median_duration
+            FROM zone_transitions
+            WHERE DATE(first_timestamp) = %s 
+            AND EXTRACT(HOUR FROM first_timestamp) BETWEEN %s AND %s 
+            AND duration_seconds BETWEEN 1 AND 2000
+            GROUP BY origin_zone_id
+        )
+        SELECT 
+            z.zone_id, 
+            COALESCE(d.median_duration, 0) AS median_duration, 
+            COALESCE(od.weight, 0) AS weight, 
+            od.origin_zone, 
+            od.destination_zone
+        FROM zones z
+        LEFT JOIN zone_durations d ON z.zone_id = d.origin_zone_id
+        LEFT JOIN od_matrix od ON z.zone_id = od.origin_zone;
+        """
+
+        cursor.execute(sql, (date_filter, start_hour, end_hour, date_filter, start_hour, end_hour))
+        results = cursor.fetchall()
+        conn.close()
+
+        # ✅ Load Zones Centroids for Mapping
+        zones_gdf = get_zones()
+        if isinstance(zones_gdf, dict) and "error" in zones_gdf:
+            return {"error": zones_gdf["error"]}
+
+        zones_gdf["centroid"] = zones_gdf["geom"].to_crs(epsg=4326).centroid
+        zone_centroids = {
+            row.zone_id: {"lon": row.centroid.x, "lat": row.centroid.y}
+            for _, row in zones_gdf.iterrows() if not row.centroid.is_empty
+        }
+
+        arc_data = []
+        duration_data = []
+        missing_zones = set()
+
+        for row in results:
+            zone_id, median_duration, weight, origin_zone, destination_zone = row
+            duration_data.append({"zone": zone_id, "duration": median_duration})
+
+            if origin_zone and destination_zone:
+                origin = zone_centroids.get(origin_zone)
+                destination = zone_centroids.get(destination_zone)
+
+                if origin and destination:
+                    arc_data.append({
+                        "origin_lat": origin["lat"],
+                        "origin_lon": origin["lon"],
+                        "destination_lat": destination["lat"],
+                        "destination_lon": destination["lon"],
+                        "weight": weight
+                    })
+                else:
+                    missing_zones.add(origin_zone)
+                    missing_zones.add(destination_zone)
+
+        if missing_zones:
+            return {"error": f"Missing centroids for zones: {list(missing_zones)}"}
+
+        return {"arc_data": arc_data, "duration_data": duration_data}
+
+    except Exception as e:
+        return {"error": f"Database Error: {str(e)}"}
