@@ -4,14 +4,19 @@ import { useEffect, useMemo, useState } from "react";
 import DeckGL from "@deck.gl/react";
 import { HeatmapLayer } from "@deck.gl/aggregation-layers";
 import { BitmapLayer, GeoJsonLayer, ArcLayer } from "@deck.gl/layers";
-import { GoogleMapsOverlay } from "@deck.gl/google-maps";
+import Map from "react-map-gl";
 
-const GOOGLE_MAPS_API_KEY = "AIzaSyALw8hi8WHQy8AuqZXPD2lMkQai1ppnxyM"; // 🔹 Replace with your API key
-const API_URL = "http://localhost:5000/heatmap";
-const BITMAP_API_URL = "http://localhost:5000/bitmap";
-const ARC_DATA_URL = "http://localhost:5000/arc-data";
-const ZONES_DATA_URL = "http://localhost:5000/zones";
-const ZONES_DURATION_DATA_URL = "http://localhost:5000/duration-times";
+const API_URLS = {
+  HEATMAP: "http://localhost:5000/heatmap",
+  ARC_AND_DURATION: "http://localhost:5000/arc-and-duration",
+  BITMAP: "http://localhost:5000/bitmap",
+};
+
+export const DECK_GL_CONTROLLER = {
+  touchZoom: true,
+  keyboard: { moveSpeed: false },
+  dragMode: "pan",
+};
 
 interface ZonesDurationData {
   zone: string;
@@ -21,182 +26,106 @@ interface ZonesDurationData {
 export default function HeatMap({
   selectedDate,
   timeRange,
+  availableDates,
+  zonesData,
+  setSelectedZone,
 }: {
   selectedDate: string;
   timeRange: [number, number];
+  availableDates: string[];
+  zonesData: any[];
+  setSelectedZone: (zoneId: string | null) => void;
 }) {
   const [data, setData] = useState([]);
-  const [bitmapImage, setBitmapImage] = useState<string | null>(null);
   const [arcData, setArcData] = useState([]);
-  const [zonesData, setZonesData] = useState([]);
-  const [googleMap, setGoogleMap] = useState<google.maps.Map | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [bitmapImage, setBitmapImage] = useState<string | null>(null);
+  const [zonesDurationData, setZonesDurationData] = useState<ZonesDurationData[]>([]);
   const [center, setCenter] = useState({ lat: 25.6518, lng: -100.287 });
-  const [zonesDurationData, setZonesDurationData] = useState<
-    ZonesDurationData[]
-  >([]);
+  const [refresh, setRefresh] = useState(false);
 
-  // ✅ Ensure Google Maps is Initialized
+  const canFetch = selectedDate && availableDates.includes(selectedDate);
+
+  // ✅ Fetch Bitmap Image FIRST (Static Data)
   useEffect(() => {
-    if (typeof window !== "undefined" && window.google && !googleMap) {
-      console.log("✅ Initializing Google Maps...");
-      setGoogleMap(
-        new google.maps.Map(
-          document.getElementById("map-container") as HTMLElement,
-          {
-            center,
-            zoom: 15,
-            mapTypeId: "satellite",
-            disableDefaultUI: true,
-          }
-        )
-      );
-    }
-  }, [googleMap]);
-
-  // ✅ Fetch Heatmap Data
-  useEffect(() => {
-    if (!selectedDate) return;
-
-    setLoading(true);
-    setError(null);
-
-    fetch(
-      `${API_URL}?date=${selectedDate}&startHour=${timeRange[0]}&endHour=${timeRange[1]}`
-    )
+    fetch(API_URLS.BITMAP)
       .then((res) => res.json())
       .then((json) => {
-        if (!json || !json.features)
-          throw new Error("Invalid response format from backend.");
-        const processedData = json.features.map((d: any) => ({
-          id: d.properties.id,
-          id_person: d.properties.id_person,
-          lat: parseFloat(d.geometry.coordinates[1]),
-          long: parseFloat(d.geometry.coordinates[0]),
-          timestamp: d.properties.timestamp,
-        }));
-
-        setData(processedData);
-        if (processedData.length > 0) {
-          setCenter({ lat: processedData[0].lat, lng: processedData[0].long });
-        }
+        if (json?.image) setBitmapImage(json.image);
       })
-      .catch((err) => setError(err.message))
-      .finally(() => setLoading(false));
-  }, [selectedDate, timeRange]);
-
-  // ✅ Fetch Bitmap Image
-  useEffect(() => {
-    fetch(BITMAP_API_URL)
-      .then((res) => res.json())
-      .then((json) => json.image && setBitmapImage(json.image))
       .catch((err) => console.error("Error fetching bitmap image:", err));
   }, []);
 
-  // ✅ Fetch Arc Data (Filtered by Date and Time Range)
+  // ✅ Debounced Fetch Effect (Prevents Multiple Requests When Adjusting the Time Slider)
   useEffect(() => {
-    if (!selectedDate) return;
+    if (!canFetch) return;
 
-    fetch(
-      `${ARC_DATA_URL}?date=${selectedDate}&startHour=${timeRange[0]}&endHour=${timeRange[1]}`
-    )
-      .then((res) => res.json())
-      .then((json) => {
-        if (!json || !json.arc_data)
-          throw new Error("Invalid ArcLayer response.");
-        setArcData(
-          json.arc_data.map((d: any) => ({
-            origin_lat: parseFloat(d.origin_lat),
-            origin_lon: parseFloat(d.origin_lon),
-            destination_lat: parseFloat(d.destination_lat),
-            destination_lon: parseFloat(d.destination_lon),
-            weight: parseFloat(d.weight),
-          }))
-        );
-      })
-      .catch((err) => console.error("Error fetching arc data:", err));
-  }, [selectedDate, timeRange]);
+    const timeoutId = setTimeout(() => {
+      fetch(`${API_URLS.HEATMAP}?date=${selectedDate}&startHour=${timeRange[0]}&endHour=${timeRange[1]}`)
+        .then((res) => res.json())
+        .then((json) => {
+          if (!json?.features) return;
+          const processedData = json.features.map((d: any) => ({
+            id: d.properties.id,
+            id_person: d.properties.id_person,
+            lat: parseFloat(d.geometry.coordinates[1]),
+            long: parseFloat(d.geometry.coordinates[0]),
+            timestamp: d.properties.timestamp,
+          }));
+          setData(processedData);
+          if (processedData.length > 0) {
+            setCenter({ lat: processedData[0].lat, lng: processedData[0].long });
+          }
+        });
+    }, 500); // ✅ Delay of 500ms before making a request
 
-  // ✅ Fetch Zone Polygons
+    return () => clearTimeout(timeoutId); // ✅ Clears timeout if the user keeps adjusting
+  }, [canFetch, selectedDate, timeRange]);
+
+  // ✅ Fetch Arc Data & Duration Data (Debounced)
   useEffect(() => {
-    fetch(ZONES_DATA_URL)
-      .then((res) => res.json())
-      .then((json) => {
-        if (!json || !json.zones) throw new Error("Invalid Zones response.");
-        setZonesData(JSON.parse(json.zones));
-      })
-      .catch((err) => console.error("Error fetching zones:", err));
-  }, []);
+    if (!canFetch) return;
 
-  useEffect(() => {
-    if (!selectedDate) return;
-    fetch(
-      ZONES_DURATION_DATA_URL +
-        `?date=${selectedDate}&startHour=${timeRange[0]}&endHour=${timeRange[1]}`
-    )
-      .then((res) => res.json())
-      .then((json) => {
-        if (!json) throw new Error("Invalid Zones Duration response.");
-        console.log(json, "json.zones_duration");
-        setZonesDurationData(json);
-      })
-      .catch((err) => console.error("Error fetching zones duration:", err));
-  }, [selectedDate, timeRange]);
+    const timeoutId = setTimeout(() => {
+      fetch(`${API_URLS.ARC_AND_DURATION}?date=${selectedDate}&startHour=${timeRange[0]}&endHour=${timeRange[1]}`)
+        .then((res) => res.json())
+        .then((json) => {
+          if (json?.arc_data) setArcData(json.arc_data);
+          if (json?.duration_data) {
+            setZonesDurationData(json.duration_data);
+            setRefresh((prev) => !prev);
+          }
+        })
+        .catch((err) => console.error("Error fetching arc & duration data:", err));
+    }, 500); // ✅ Debounce time
 
-  // useEffect(() => {
-  //   if (!googleMap) return;
+    return () => clearTimeout(timeoutId); // ✅ Clears timeout if still adjusting
+  }, [canFetch, selectedDate, timeRange]);
 
-  //   console.log("✅ Rendering Deck.GL Layers...");
+  // ✅ Function to Get Fill Color Based on Duration
+  const getZoneFillColor = (zoneId: string) => {
+    if (!zonesDurationData.length) {
+      return [200, 200, 200, 150]; // ✅ Default Gray While Loading
+    }
 
-  //   const overlay = new GoogleMapsOverlay({
-  //     layers: [
-  //       bitmapImage && new BitmapLayer({
-  //         id: 'bitmap-layer',
-  //         bounds: [
-  //           [-100.28813684548274, 25.650376387020653],
-  //           [-100.28813684548274, 25.654316647171434],
-  //           [-100.28389981756604, 25.654316647171434],
-  //           [-100.28389981756604, 25.650376387020653]
-  //         ],
-  //         image: bitmapImage,
-  //         opacity: 1,
-  //       }),
+    const zoneData = zonesDurationData.find((zone) => zone.zone === zoneId);
+    if (!zoneData) {
+      console.warn(`⚠️ No duration data found for zone: ${zoneId}`);
+      return [200, 200, 200, 150]; // ✅ Default Gray for Missing Zones
+    }
 
-  //       new GeoJsonLayer({
-  //         id: "zones-layer",
-  //         data: zonesData,
-  //         getFillColor: [100, 150, 250, 100],
-  //         getLineColor: [0, 0, 0, 255],
-  //         getLineWidth: 2,
-  //         pickable: true,
-  //       }),
+    const duration = zoneData.duration;
+    return duration < 3
+      ? [100, 150, 250, 200] // Light Blue
+      : duration < 5
+      ? [153, 255, 102, 200] // Green
+      : duration < 8
+      ? [255, 204, 102, 200] // Yellow
+      : duration < 10
+      ? [255, 153, 0, 200] // Orange
+      : [255, 0, 0, 200]; // Red
+  };
 
-  //       new HeatmapLayer({
-  //         id: 'heatmap-layer',
-  //         data,
-  //         getPosition: (d) => [d.long, d.lat],
-  //         getWeight: (d) => 1,
-  //         aggregation: 'SUM',
-  //         radiusPixels: 40,
-  //       }),
-
-  //       new ArcLayer({
-  //         id: 'arc-layer',
-  //         data: arcData, // ✅ This now contains filtered data
-  //         getSourcePosition: (d) => [d.origin_lon, d.origin_lat],
-  //         getTargetPosition: (d) => [d.destination_lon, d.destination_lat],
-  //         getWidth: (d) => Math.max(1, d.weight * 0.1), // Adjust line thickness based on weight
-  //         getSourceColor: [0, 0, 255], // Blue for source
-  //         getTargetColor: [255, 0, 0], // Red for target
-  //         pickable: true,
-  //       }),
-  //     ].filter(Boolean)
-  //   });
-
-  //   overlay.setMap(googleMap);
-  // }, [googleMap, data, bitmapImage, zonesData, arcData]);
-
+  // ✅ Layers Configuration (Includes Bitmap, Heatmap, Arc & Zones)
   const renderLayers = useMemo(() => {
     return [
       bitmapImage &&
@@ -213,33 +142,24 @@ export default function HeatMap({
         }),
 
       new GeoJsonLayer({
-        // 100, 150, 250, 100
         id: "zones-layer",
         data: zonesData,
-        getFillColor: (d) => {
-          console.log(d.properties, "d.properties");
-          // 0-3: Blue, 3-5: Green, 5-7: Yellow, 7+: Red
-          const duration =
-            zonesDurationData.find((zone) => zone.zone == d.properties.zone_id)
-              ?.duration || 0;
-
-          console.log(duration, "duration");
-
-          const light_blue = [100, 150, 250, 100];
-          const green = [153, 255, 102, 100];
-          const yellow = [255, 204, 102, 100];
-          const orange = [255, 153, 0, 100];
-          const red = [255, 0, 0, 100];
-
-          if (duration < 3) return light_blue;
-          if (duration < 5) return green;
-          if (duration < 8) return yellow;
-          if (duration < 10) return orange;
-          return red;
+        getFillColor: (d) => getZoneFillColor(d.properties.zone_id),
+        updateTriggers: {
+          getFillColor: [zonesDurationData],
         },
-        getLineColor: [0, 0, 0, 255],
-        getLineWidth: 2,
         pickable: true,
+        autoHighlight: true,
+        highlightColor: [100, 150, 250, 255], 
+        getLineColor: [0, 0, 0, 255],
+        getLineWidth: 1,
+        onHover: (info) => {
+          if (info.object) {
+            setSelectedZone(info.object.properties.zone_id);
+          } else {
+            setSelectedZone(null);
+          }
+        },
       }),
 
       new HeatmapLayer({
@@ -253,35 +173,20 @@ export default function HeatMap({
 
       new ArcLayer({
         id: "arc-layer",
-        data: arcData, // ✅ This now contains filtered data
+        data: arcData,
         getSourcePosition: (d) => [d.origin_lon, d.origin_lat],
         getTargetPosition: (d) => [d.destination_lon, d.destination_lat],
-        getWidth: (d) => Math.max(1, d.weight * 0.1), // Adjust line thickness based on weight
-        getSourceColor: [0, 0, 255], // Blue for source
-        getTargetColor: [255, 0, 0], // Red for target
+        getWidth: (d) => Math.max(1, d.weight * 0.1),
+        getSourceColor: [0, 0, 255],
+        getTargetColor: [255, 0, 0],
         pickable: true,
       }),
     ].filter(Boolean);
-  }, [arcData, data, bitmapImage, zonesData, zonesDurationData]);
-
-  useEffect(() => {
-    if (!googleMap) return;
-    if (renderLayers.length === 0) return;
-
-    // console.log("✅ Rendering Deck.GL Layers...");
-
-    const overlay = new GoogleMapsOverlay({
-      layers: renderLayers,
-    });
-
-    overlay.setMap(googleMap);
-  }, [googleMap, selectedDate, timeRange, renderLayers]);
+  }, [bitmapImage, arcData, data, zonesData, zonesDurationData, refresh]);
 
   return (
-    <div className="relative w-full">
-      <div className="h-[500px] w-full rounded-lg overflow-hidden border border-gray-300 relative">
-        <div id="map-container" className="h-full w-full" />
-      </div>
-    </div>
+    <DeckGL controller={DECK_GL_CONTROLLER} initialViewState={{ latitude: center.lat, longitude: center.lng, zoom: 15 }} layers={renderLayers}>
+      <Map width="100%" height="100%" mapStyle="mapbox://styles/mapbox/satellite-v9" mapboxAccessToken="pk.eyJ1IjoibGFtZW91Y2hpIiwiYSI6ImNsa3ZqdHZtMDBjbTQzcXBpNzRyc2ljNGsifQ.287002jl7xT9SBub-dbBbQ"/>
+    </DeckGL>
   );
 }

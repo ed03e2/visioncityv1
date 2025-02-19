@@ -1,74 +1,74 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { BarChart } from '@/app/components/charts/BarChart';
-import { LineChart } from '@/app/components/charts/LineChart';
-import { PieChart } from '@/app/components/charts/PieChart';
-import { Calendar } from '@/app/components/filters/Calendar';
 import HeatMap from '@/app/components/charts/HeatMap';
-import RangeSlider from '@/app/components/filters/RangeSlider'; // New component
+import Sidebar from '@/app/components/layout/Sidebar';
+import AnalyticsModal from '@/app/components/charts/AnalyticsModal';
 
-const API_URL = "http://localhost:5000/available-dates"; // Flask API
+const API_URLS = {
+  AVAILABLE_DATES: "http://localhost:5000/available-dates",
+  ZONES: "http://localhost:5000/zones",
+};
 
 export default function DashboardPage() {
-  const getTodayDate = () => {
-    const today = new Date();
-    return today.toISOString().split("T")[0]; // Always format as YYYY-MM-DD
-  };
+  const getTodayDate = () => new Date().toISOString().split("T")[0];
 
   const [selectedDate, setSelectedDate] = useState<string>(getTodayDate());
   const [availableDates, setAvailableDates] = useState<string[]>([]);
-  const [timeRange, setTimeRange] = useState<[number, number]>([12, 16]); // ✅ Default 12:00 - 16:00
+  const [timeRange, setTimeRange] = useState<[number, number]>([12, 16]);
+  const [zonesData, setZonesData] = useState<any[]>([]);
+  const [selectedZone, setSelectedZone] = useState<string | null>(null); // Zone ID for analytics
 
+  // ✅ Fetch Available Dates First
   useEffect(() => {
-    fetch(API_URL)
+    fetch(API_URLS.AVAILABLE_DATES)
       .then((res) => res.json())
       .then((data) => {
-        if (data.available_dates.length > 0) {
-          const firstAvailableDate = data.available_dates.includes(getTodayDate())
+        if (data.available_dates?.length > 0) {
+          const firstAvailable = data.available_dates.includes(getTodayDate())
             ? getTodayDate()
             : data.available_dates[0];
-  
+
           setAvailableDates(data.available_dates);
-          setSelectedDate(firstAvailableDate); // ✅ Ensure we select the first available date
+          setSelectedDate(firstAvailable);
         }
       })
       .catch((err) => console.error("Error fetching available dates:", err));
   }, []);
-  
 
-  const handleDateChange = (date: string) => {
-    if (availableDates.includes(date)) {
-      setSelectedDate(date);
-    }
-  };
+  // ✅ Fetch Zone Polygons (Static Data)
+  useEffect(() => {
+    fetch(API_URLS.ZONES)
+      .then((res) => res.json())
+      .then((json) => {
+        if (!json?.zones) return console.warn("⚠️ No zones data found.");
+        setZonesData(JSON.parse(json.zones));
+      })
+      .catch((err) => console.error("Error fetching zones:", err));
+  }, []);
 
   return (
-    <div className="p-6 space-y-6">
-      <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
+    <div className="relative w-screen h-screen">
+      {/* Sidebar with Filters */}
+      <Sidebar 
+        selectedDate={selectedDate} 
+        setSelectedDate={setSelectedDate} 
+        availableDates={availableDates} 
+        timeRange={timeRange} 
+        setTimeRange={setTimeRange} 
+      />
 
-      <div className="bg-white p-4 rounded-lg shadow">
-        <h2 className="text-lg font-semibold mb-4">Analytics</h2>
-        <div className="flex flex-wrap justify-between gap-4">
-          <div className="flex-1 min-w-[250px]"><BarChart /></div>
-          <div className="flex-1 min-w-[250px]"><LineChart /></div>
-          <div className="flex-1 min-w-[250px]"><PieChart /></div>
-        </div>
-      </div>
+      {/* Full-screen Map */}
+      <HeatMap 
+        selectedDate={selectedDate} 
+        timeRange={timeRange} 
+        availableDates={availableDates} 
+        zonesData={zonesData} 
+        setSelectedZone={setSelectedZone} // Pass the function to set selected zone
+      />
 
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-        <div className="bg-white p-4 rounded-lg shadow">
-          <h2 className="text-lg font-semibold mb-4">Filter</h2>
-          <Calendar selectedDate={selectedDate} onChange={handleDateChange} disabledDates={availableDates} />
-          <RangeSlider value={timeRange} onChange={setTimeRange} />
-        </div>
-
-        <div className="bg-white p-4 rounded-lg shadow">
-          <h2 className="text-lg font-semibold mb-4">Map</h2>
-          <HeatMap selectedDate={selectedDate} timeRange={timeRange} />
-        </div>
-      </div>
+      {/* Analytics Modal (Shows on Hover) */}
+      {selectedZone && <AnalyticsModal zoneId={selectedZone} />}
     </div>
   );
 }
