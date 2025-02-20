@@ -124,29 +124,47 @@ def generate_arc_layer(date_filter, start_hour, end_hour):
 
 # ✅ Fetch Heatmap Data
 def get_filtered_data(date_filter, start_hour, end_hour):
-    """Fetch person observation data for heatmap filtering by date and time."""
+    """Fetch person observation data with zone_id for heatmap filtering by date and time."""
     try:
         conn = psycopg2.connect(**POSTGIS_CONN)
+
         SQL_QUERY = """
-            SELECT id, id_person, lat, long, timestamp
-            FROM person_observed
-            WHERE DATE(timestamp) = %s AND EXTRACT(HOUR FROM timestamp) BETWEEN %s AND %s;
+            SELECT 
+                p.id, 
+                p.id_person, 
+                p.lat, 
+                p.long, 
+                p.timestamp, 
+                z.zone_id 
+            FROM person_observed p
+            LEFT JOIN zones z
+            ON ST_Contains(z.geom, ST_SetSRID(ST_MakePoint(p.long, p.lat), 4326))
+            WHERE DATE(p.timestamp) = %s 
+            AND EXTRACT(HOUR FROM p.timestamp) BETWEEN %s AND %s;
         """
-        df = pd.read_sql(SQL_QUERY, conn, params=(
-            date_filter, start_hour, end_hour))
+
+        df = pd.read_sql(SQL_QUERY, conn, params=(date_filter, start_hour, end_hour))
 
         features = [
             {
                 "type": "Feature",
                 "geometry": {"type": "Point", "coordinates": [row.long, row.lat]},
-                "properties": {"id": row.id, "id_person": row.id_person, "timestamp": row.timestamp.isoformat()}
+                "properties": {
+                    "id": row.id, 
+                    "id_person": row.id_person, 
+                    "timestamp": row.timestamp.isoformat(),
+                    "zone_id": row.zone_id  # ✅ Added zone_id
+                }
             }
             for _, row in df.iterrows()
         ]
 
+        conn.close()
         return {"type": "FeatureCollection", "features": features}
+    
     except Exception as e:
         return {"error": str(e)}
+
 
 # ✅ Fetch Available Dates
 def get_available_dates():

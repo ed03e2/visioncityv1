@@ -1,30 +1,48 @@
-import { PieChart as RechartsPieChart, Pie, Cell, Tooltip } from 'recharts';
+import { PieChart as RechartsPieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
-const data = [
-  { name: 'A', value: 400 },
-  { name: 'B', value: 300 },
-  { name: 'C', value: 300 },
-];
+// ✅ High-Contrast Grayscale Colors (Light to Dark)
+const COLORS = ['#f0f0f0', '#d6d6d6', '#a6a6a6', '#707070', '#404040', '#1a1a1a'];
 
-const COLORS = ['#1c1b1a', '#282727', '#434141'];
-
-export function PieChart() {
+export function PieChart({ data, title }) {
   return (
-    <RechartsPieChart width={300} height={200}>
-      <Pie
-        data={data}
-        cx={150}
-        cy={100}
-        innerRadius={60}
-        outerRadius={80}
-        fill="#8884d8"
-        dataKey="value"
-      >
-        {data.map((entry, index) => (
-          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-        ))}
-      </Pie>
-      <Tooltip />
-    </RechartsPieChart>
+    <div className="w-full h-full">
+      <ResponsiveContainer width="100%" height="100%">
+        <RechartsPieChart>
+          <Pie
+            data={data}
+            cx="50%"
+            cy="50%"
+            innerRadius="45%"
+            outerRadius="80%"
+            dataKey="value"
+            label={({ name, percent, x, y }) => ( // ✅ Custom label rendering
+              <text
+                x={x}
+                y={y}
+                fill="black" // ✅ Force label text to be black
+                textAnchor="middle"
+                dominantBaseline="central"
+                fontSize="14px"
+                fontWeight="bold"
+              >
+                {`${name}: ${(percent * 100).toFixed(1)}%`}
+              </text>
+            )}
+            labelLine={true} // ✅ Show label lines for better visibility
+          >
+            {data.map((entry, index) => (
+              <Cell 
+                key={`cell-${index}`} 
+                fill={COLORS[index % COLORS.length]} 
+                stroke="#000000" // ✅ Black stroke for separation
+                strokeWidth={1} 
+              />
+            ))}
+          </Pie>
+          <Tooltip wrapperStyle={{ backgroundColor: "#fff", color: "#000" }} /> {/* ✅ Light tooltip for better contrast */}
+          <Legend verticalAlign="bottom" height={50} wrapperStyle={{ color: "#000" }} /> {/* ✅ Black text in legend */}
+        </RechartsPieChart>
+      </ResponsiveContainer>
+    </div>
   );
-} 
+}
