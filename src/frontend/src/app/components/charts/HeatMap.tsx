@@ -1,5 +1,4 @@
 "use client";
-
 import { useEffect, useMemo, useState } from "react";
 import DeckGL from "@deck.gl/react";
 import { HeatmapLayer } from "@deck.gl/aggregation-layers";
@@ -35,6 +34,8 @@ export default function HeatMap({
   availableDates: string[];
   zonesData: any[];
   setSelectedZone: (zoneId: string | null) => void;
+  onMapClick: (lat: number, lng: number) => void; // ✅ Añadir esta línea
+  markers: any[]; // ✅ Añadir esta línea
 }) {
   const [data, setData] = useState([]);
   const [arcData, setArcData] = useState([]);
