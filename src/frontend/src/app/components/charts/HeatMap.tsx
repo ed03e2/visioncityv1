@@ -23,18 +23,21 @@ interface ZonesDurationData {
   duration: number;
 }
 
+
 export default function HeatMap({
   selectedDate,
   timeRange,
   availableDates,
   zonesData,
   setSelectedZone,
+  setHeatmapData,
 }: {
   selectedDate: string;
   timeRange: [number, number];
   availableDates: string[];
   zonesData: any[];
   setSelectedZone: (zoneId: string | null) => void;
+  setHeatmapData: (data: any[]) => void;
 }) {
   const [data, setData] = useState([]);
   const [arcData, setArcData] = useState([]);
@@ -70,8 +73,10 @@ export default function HeatMap({
             lat: parseFloat(d.geometry.coordinates[1]),
             long: parseFloat(d.geometry.coordinates[0]),
             timestamp: d.properties.timestamp,
+            zone_id: d.properties.zone_id || null, // ✅ Include zone_id
           }));
           setData(processedData);
+          setHeatmapData(processedData); // ✅ Send updated heatmap data to DashboardPage
           if (processedData.length > 0) {
             setCenter({ lat: processedData[0].lat, lng: processedData[0].long });
           }
@@ -176,7 +181,7 @@ export default function HeatMap({
         data: arcData,
         getSourcePosition: (d) => [d.origin_lon, d.origin_lat],
         getTargetPosition: (d) => [d.destination_lon, d.destination_lat],
-        getWidth: (d) => Math.max(1, d.weight * 0.1),
+        getWidth: (d) =>  d.weight ,
         getSourceColor: [0, 0, 255],
         getTargetColor: [255, 0, 0],
         pickable: true,

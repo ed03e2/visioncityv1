@@ -1,21 +1,18 @@
-import { BarChart as RechartsBarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
+import { BarChart as RechartsBarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
-const data = [
-  { name: 'Ene', value: 400 },
-  { name: 'Feb', value: 300 },
-  { name: 'Mar', value: 600 },
-  { name: 'Abr', value: 200 },
-  { name: 'May', value: 500 },
-];
-
-export function BarChart() {
+export function BarChart({ data, title }) {
   return (
-    <RechartsBarChart width={300} height={200} data={data}>
-      <CartesianGrid strokeDasharray="3 3" />
-      <XAxis dataKey="name" />
-      <YAxis />
-      <Tooltip />
-      <Bar dataKey="value" fill="#1c1b1a" />
-    </RechartsBarChart>
+    <div className="w-full h-full">
+      <h3 className="text-lg font-semibold text-center text-gray-800">{title}</h3>
+      <ResponsiveContainer width="100%" height="80%">
+        <RechartsBarChart data={data}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="name" />
+          <YAxis />
+          <Tooltip />
+          <Bar dataKey="value" fill="#1c1b1a" />
+        </RechartsBarChart>
+      </ResponsiveContainer>
+    </div>
   );
-} 
+}

@@ -18,6 +18,7 @@ export default function DashboardPage() {
   const [timeRange, setTimeRange] = useState<[number, number]>([12, 16]);
   const [zonesData, setZonesData] = useState<any[]>([]);
   const [selectedZone, setSelectedZone] = useState<string | null>(null); // Zone ID for analytics
+  const [heatmapData, setHeatmapData] = useState<any[]>([]); // ✅ Store heatmap data
 
   // ✅ Fetch Available Dates First
   useEffect(() => {
@@ -64,11 +65,12 @@ export default function DashboardPage() {
         timeRange={timeRange} 
         availableDates={availableDates} 
         zonesData={zonesData} 
-        setSelectedZone={setSelectedZone} // Pass the function to set selected zone
+        setSelectedZone={setSelectedZone}
+        setHeatmapData={setHeatmapData}
       />
 
       {/* Analytics Modal (Shows on Hover) */}
-      {selectedZone && <AnalyticsModal zoneId={selectedZone} />}
+      {selectedZone && <AnalyticsModal zoneId={selectedZone} heatmapData={heatmapData}/>}
     </div>
   );
 }
