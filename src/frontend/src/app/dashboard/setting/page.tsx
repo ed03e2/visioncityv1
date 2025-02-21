@@ -61,13 +61,14 @@ export default function DashboardPage() {
 
       {/* Full-screen Map */}
       <HeatMap 
-        selectedDate={selectedDate} 
-        timeRange={timeRange} 
-        availableDates={availableDates} 
-        zonesData={zonesData} 
+        selectedDate={selectedDate}
+        timeRange={timeRange}
+        availableDates={availableDates}
+        zonesData={zonesData}
         setSelectedZone={setSelectedZone}
-        setHeatmapData={setHeatmapData}
-      />
+        setHeatmapData={setHeatmapData} onMapClick={function (lat: number, lng: number): void {
+          throw new Error('Function not implemented.');
+        } } markers={[]}      />
 
       {/* Analytics Modal (Shows on Hover) */}
       {selectedZone && <AnalyticsModal zoneId={selectedZone} heatmapData={heatmapData}/>}
