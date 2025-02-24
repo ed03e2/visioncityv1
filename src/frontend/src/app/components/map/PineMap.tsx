@@ -21,7 +21,7 @@ type IconData = {
   lng: number;
 };
 
-export default function SimpleMap() {
+export default function PineMap() {
   const [bitmapImage, setBitmapImage] = useState<string | null>(null);
   const [center, setCenter] = useState({ lat: 25.6518, lng: -100.287 });
   const [icons, setIcons] = useState<IconData[]>([]); // Estado para los marcadores
