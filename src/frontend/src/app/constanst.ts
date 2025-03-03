@@ -1,6 +1,5 @@
 import { LatLngBounds, LatLngExpression, LatLngTuple } from "leaflet";
 
-
 export const IMG_NE_BOUND = [25.654195, -100.28383];
 export const IMG_SW_BOUND = [25.650468, -100.288154];
 export const ORTHO_BOUNDS = new LatLngBounds(

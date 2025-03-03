@@ -14,7 +14,7 @@ export default function ExplorePage() {
         title: "Trajectories Analysis",
         description: "Analyze pedestrian paths to optimize urban space design and flow.",
         image: 'https://assets.api.uizard.io/api/cdn/stream/6a54dabc-e6e8-47c5-b345-c42c59ccca0d.png',
-        href: '/dashboard/map'
+        href: '/dashboard/mapconf'
       },
       {
         title: "Duration of Stay",
