@@ -5,7 +5,9 @@ import { PieChart } from "@/app/components/charts/PieChart";
 export default function AnalyticsModal({ zoneId, heatmapData }) {
   // ✅ Filter Heatmap Data Based on Selected Zone
   const filteredData = heatmapData.filter((point) => point.zone_id === zoneId);
-
+  const modalClick = (event) => {
+    event.stopPropagation(); // ✅ Prevent closing when clicking inside modal
+  };
   // ✅ Count Unique `id_person` for Line Chart (Activity Over Time)
   const processTimeSeriesData = () => {
     if (!filteredData || filteredData.length === 0) return [];
@@ -45,8 +47,13 @@ export default function AnalyticsModal({ zoneId, heatmapData }) {
     ];
   };
 
+
   return (
-    <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 backdrop-blur-lg bg-gray-900/80 p-6 shadow-xl rounded-xl w-[90%] md:w-[70%] lg:w-[60%] font-sans border border-gray-700">
+    <div
+      onClick={modalClick} // ✅ Ensures modal does not close when clicking inside
+      className="fixed bottom-6 left-1/2 transform -translate-x-1/2 backdrop-blur-lg bg-gray-900/80 p-6 shadow-xl rounded-xl w-[90%] md:w-[70%] lg:w-[60%] font-sans border border-gray-700 transition-opacity duration-300 ease-in-out"
+    >
+      {/* Header */}
       <h2 className="text-2xl font-bold text-white text-center mb-6 shadow-md">Zone {zoneId} - Analytics</h2>
 
       {/* Charts Grid (Data from Heatmap) */}
@@ -54,17 +61,17 @@ export default function AnalyticsModal({ zoneId, heatmapData }) {
         
         {/* Line Chart - Activity Over Time */}
         <div className="flex justify-center p-4 bg-white/90 rounded-lg shadow-md aspect-[4/3]">
-          <LineChart data={processTimeSeriesData()} title="Daily capacity" />
+          <LineChart data={processTimeSeriesData()} title="Daily Capacity" />
         </div>
 
         {/* Pie Chart - Time of Day Distribution */}
         <div className="flex justify-center p-4 bg-white/90 rounded-lg shadow-md aspect-[4/3]">
-          <PieChart data={processTimeOfDayDistribution()} title="Capacity distribution pie" />
+          <PieChart data={processTimeOfDayDistribution()} title="Capacity Distribution (Pie)" />
         </div>
 
         {/* Bar Chart - Time of Day Activity */}
         <div className="flex justify-center p-4 bg-white/90 rounded-lg shadow-md aspect-[4/3]">
-          <BarChart data={processTimeOfDayDistribution()} title="Capacity distribution hist" />
+          <BarChart data={processTimeOfDayDistribution()} title="Capacity Distribution (Histogram)" />
         </div>
       </div>
     </div>

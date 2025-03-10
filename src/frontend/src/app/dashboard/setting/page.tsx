@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import HeatMap from '@/app/components/charts/HeatMap';
 import Sidebar from '@/app/components/layout/Sidebar';
 import AnalyticsModal from '@/app/components/charts/AnalyticsModal';
@@ -17,12 +17,27 @@ export default function DashboardPage() {
   const [availableDates, setAvailableDates] = useState<string[]>([]);
   const [timeRange, setTimeRange] = useState<[number, number]>([12, 16]);
   const [zonesData, setZonesData] = useState<any[]>([]);
-  const [selectedZone, setSelectedZone] = useState<string | null>(null); // Zone ID for analytics
-  const [heatmapData, setHeatmapData] = useState<any[]>([]); // ✅ Store heatmap data
+  const [selectedZone, setSelectedZone] = useState<string | null>(null);
+  const [heatmapData, setHeatmapData] = useState<any[]>([]);
+  const modalRef = useRef<HTMLDivElement | null>(null);
 
-  // ✅ Fetch Available Dates First
+  // ✅ Close modal when clicking outside
   useEffect(() => {
-    fetch(API_URLS.AVAILABLE_DATES)
+    const handleClickOutside = (event: MouseEvent) => {
+      if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
+        setSelectedZone(null); // ✅ Close modal
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  // ✅ Fetch Available Dates
+  useEffect(() => {
+    fetch("http://localhost:5000/available-dates")
       .then((res) => res.json())
       .then((data) => {
         if (data.available_dates?.length > 0) {
@@ -37,9 +52,9 @@ export default function DashboardPage() {
       .catch((err) => console.error("Error fetching available dates:", err));
   }, []);
 
-  // ✅ Fetch Zone Polygons (Static Data)
+  // ✅ Fetch Zone Polygons
   useEffect(() => {
-    fetch(API_URLS.ZONES)
+    fetch("http://localhost:5000/zones")
       .then((res) => res.json())
       .then((json) => {
         if (!json?.zones) return console.warn("⚠️ No zones data found.");
@@ -50,28 +65,31 @@ export default function DashboardPage() {
 
   return (
     <div className="relative w-screen h-screen">
-      {/* Sidebar with Filters */}
-      <Sidebar 
-        selectedDate={selectedDate} 
-        setSelectedDate={setSelectedDate} 
-        availableDates={availableDates} 
-        timeRange={timeRange} 
-        setTimeRange={setTimeRange} 
+      {/* Sidebar */}
+      <Sidebar
+        selectedDate={selectedDate}
+        setSelectedDate={setSelectedDate}
+        availableDates={availableDates}
+        timeRange={timeRange}
+        setTimeRange={setTimeRange}
       />
 
-      {/* Full-screen Map */}
-      <HeatMap 
+      {/* Heatmap */}
+      <HeatMap
         selectedDate={selectedDate}
         timeRange={timeRange}
         availableDates={availableDates}
         zonesData={zonesData}
         setSelectedZone={setSelectedZone}
-        setHeatmapData={setHeatmapData} onMapClick={function (lat: number, lng: number): void {
-          throw new Error('Function not implemented.');
-        } } markers={[]}      />
+        setHeatmapData={setHeatmapData}
+      />
 
-      {/* Analytics Modal (Shows on Hover) */}
-      {selectedZone && <AnalyticsModal zoneId={selectedZone} heatmapData={heatmapData}/>}
+      {/* Analytics Modal */}
+      {selectedZone && (
+        <div ref={modalRef}>
+          <AnalyticsModal zoneId={selectedZone} heatmapData={heatmapData} />
+        </div>
+      )}
     </div>
   );
 }
