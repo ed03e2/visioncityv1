@@ -35,12 +35,8 @@
     "react-calendar": "^5.1.0",
     "react-dom": "^18.3.1",
     "react-icons": "^5.4.0",
-<<<<<<< HEAD
-    "react-leaflet": "^4.2.1",
-=======
     "react-leaflet": "^5.0.0",
     "react-leaflet-semicircle": "^3.0.3",
->>>>>>> ef1745a3e6dff077552c6b4edbad5261844e84ad
     "react-map-gl": "^7.1.9",
     "react-modal": "^3.16.3",
     "recharts": "^2.15.1",
