@@ -2,13 +2,14 @@
 import { useRef, useState } from "react";
 import {ImageOverlay,
     LayerGroup,
-    MapContainer,
+    MapContainer,Popup,
     Marker,TileLayer} from "react-leaflet";
   import "leaflet-semicircle";
   import "leaflet/dist/leaflet.css";
   import {Map,icon} from "leaflet";
   import { SemiCircle } from "react-leaflet-semicircle";
 import {  INFO_CAMERAS, ORTHO_BOUNDS, ORTHO_IMAGE } from "@/app/constanst";
+import { inflate } from "zlib";
 
 const cameraIcon = icon({
     iconSize: [30, 30],
@@ -56,8 +57,15 @@ export default function mapConfig (){
                           mapRef.current?.setView(currentCenter, currentZoom);
                         },
                       }}
-                    />
-                    <SemiCircle
+                      >
+                      <Popup>
+                        <div>
+                          <h3>Camara {i+1}</h3>
+                          <h3>Nombre {cameraInfo.name}</h3>
+                        </div>
+                      </Popup>
+                    </Marker>
+                       <SemiCircle
                       position={cameraInfo.position}
                       radius={cameraInfo.radius}
                       startAngle={cameraInfo.startAngle}
