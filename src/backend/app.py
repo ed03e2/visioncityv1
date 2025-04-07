@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import json
 import base64
+import psycopg2
 from database import get_filtered_data, get_available_dates, generate_arc_layer, get_zones, get_duration_times_by_zone, get_arc_and_duration_data
 
 app = Flask(__name__)
@@ -99,6 +100,18 @@ def get_zones_durations():
         return jsonify({"error": f"Invalid input: {'null date' if not date else ''}{', null startHour' if not start_hour else ''}{', null endHour' if not end_hour else ''}{', startHour >= endHour' if start_hour >= end_hour else ''}"}, 400)
 
     return jsonify(get_duration_times_by_zone(date, start_hour, end_hour))
+
+
+@app.route("/cams-fov", methods=["GET"])
+def get_cams_fov():
+    """Serve camera FOV GeoJSON data."""
+    try:
+        with open("cams_fov.geojson", "r") as geojson_file:
+            data = json.load(geojson_file)
+        return jsonify(data)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 
 
 if __name__ == "__main__":

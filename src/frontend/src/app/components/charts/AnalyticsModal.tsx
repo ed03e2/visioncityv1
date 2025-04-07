@@ -1,6 +1,6 @@
 import { BarChart } from "@/app/components/charts/BarChart";
 import { LineChart } from "@/app/components/charts/LineChart";
-import { PieChart } from "@/app/components/charts/PieChart";
+import { PieChart } from "@/app/components/charts/PieChart"; 
 
 export default function AnalyticsModal({ zoneId, heatmapData }) {
   // ✅ Filter Heatmap Data Based on Selected Zone

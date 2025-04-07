@@ -3,6 +3,8 @@ import json
 import geopandas as gpd
 import pandas as pd
 
+
+
 # ✅ Database Connection Using psycopg2
 POSTGIS_CONN = {
     "dbname": "crowdcounting",
@@ -326,3 +328,4 @@ def get_arc_and_duration_data(date_filter, start_hour, end_hour):
 
     except Exception as e:
         return {"error": f"Database Error: {str(e)}"}
+
