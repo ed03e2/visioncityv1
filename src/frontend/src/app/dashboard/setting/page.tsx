@@ -97,6 +97,16 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
 // page.tsx
 'use client';
 
@@ -127,6 +137,7 @@ export default function DashboardPage() {
     zones: true,
     arcs: true,
     camsFov: true,  // NUEVO: Control de la capa FOV
+    scatter: true,
     density: true,
   });
 

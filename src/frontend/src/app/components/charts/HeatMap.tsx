@@ -393,9 +393,28 @@
 import { useEffect, useMemo, useState } from "react";
 import DeckGL from "@deck.gl/react";
 import { HeatmapLayer } from "@deck.gl/aggregation-layers";
-import { BitmapLayer, GeoJsonLayer, ArcLayer } from "@deck.gl/layers";
+import { BitmapLayer, GeoJsonLayer, ArcLayer, ScatterplotLayer } from "@deck.gl/layers";
 import Map from "react-map-gl";
 import * as d3 from "d3";
+
+
+// -------------------------
+import { FeatureCollection, Feature, Point } from "geojson";
+// -------------------------
+
+
+// -------------------------
+interface HeatmapProperties {
+  id: string;
+  id_person: string;
+  lat: number;
+  long: number;
+  timestamp: string;
+  zone_id: string | null;
+}
+
+type HeatmapFeature = Feature<Point, HeatmapProperties>;
+// -------------------------
 
 const API_URLS = {
   HEATMAP: "http://localhost:5000/heatmap",
@@ -426,6 +445,11 @@ interface HeatMapProps {
     zones: boolean;
     arcs: boolean;
     camsFov: boolean; // NUEVO: para controlar la capa FOV
+
+    // -------------------------
+    scatter: boolean;
+    // -------------------------
+
   };
 }
 
@@ -435,17 +459,25 @@ export default function HeatMap({
   availableDates,
   zonesData,
   setSelectedZone,
-  setHeatmapData,
+  //setHeatmapData,
   layerVisibility,
 }: HeatMapProps) {
-  const [data, setData] = useState([]);
+  //const [data, setData] = useState([]);
   const [arcData, setArcData] = useState([]);
   const [bitmapImage, setBitmapImage] = useState<string | null>(null);
   const [zonesDurationData, setZonesDurationData] = useState<ZonesDurationData[]>([]);
   const [center, setCenter] = useState({ lat: 25.6518, lng: -100.287 });
   const [refresh, setRefresh] = useState(false);
   const [hoveredZone, setHoveredZone] = useState<{ duration: number; x: number; y: number } | null>(null);
-  const [camsFovData, setCamsFovData] = useState<any>(null); // NUEVO: Estado para los datos FOV
+  //const [camsFovData, setCamsFovData] = useState<any>(null); // NUEVO: Estado para los datos FOV
+
+  // -----------------------
+  const [camsFovData, setCamsFovData] = useState<FeatureCollection | null>(null);
+  const [scatterData, setScatterData] = useState<FeatureCollection | null>(null); // NUEVO: Estado para datos scatter
+  const [data, setData] = useState<HeatmapProperties[]>([]);
+  const [heatmapData, setHeatmapData] = useState<HeatmapProperties[]>([]);
+  // -----------------------
+
 
   const canFetch = selectedDate && availableDates.includes(selectedDate);
 
@@ -468,14 +500,23 @@ export default function HeatMap({
         .then((res) => res.json())
         .then((json) => {
           if (!json?.features) return;
-          const processedData = json.features.map((d: any) => ({
+
+
+          //const processedData = json.features.map((d: any) => ({
+          
+          // -------------------------
+          const processedData = (json.features as HeatmapFeature[]).map((d) => ({
+          // -------------------------
+            
             id: d.properties.id,
             id_person: d.properties.id_person,
-            lat: parseFloat(d.geometry.coordinates[1]),
-            long: parseFloat(d.geometry.coordinates[0]),
+            lat: parseFloat(String(d.geometry.coordinates[1])),
+            long: parseFloat(String(d.geometry.coordinates[0])),
             timestamp: d.properties.timestamp,
             zone_id: d.properties.zone_id || null,
           }));
+
+
           setData(processedData);
           setHeatmapData(processedData);
           if (processedData.length > 0) {
@@ -485,7 +526,7 @@ export default function HeatMap({
     }, 500);
 
     return () => clearTimeout(timeoutId);
-  }, [canFetch, selectedDate, timeRange]);
+  }, [canFetch, selectedDate, timeRange, setHeatmapData]);
 
   // Debounced Fetch for Arc Data & Duration Data
   useEffect(() => {
@@ -520,6 +561,21 @@ export default function HeatMap({
       })
       .catch((err) => console.error("Error fetching cams-fov:", err));
   }, []);
+
+  // --------------------------------------
+  useEffect(() => {
+    fetch("http://localhost:5000/scatter-detections")
+      .then((res) => res.json())
+      .then((json) => {
+        if (!json.error) {
+          setScatterData(json);
+        } else {
+          console.error("Error fetching scatter detections:", json.error);
+        }
+      })
+      .catch((err) => console.error("Error fetching scatter detections:", err));
+  }, []);
+  // --------------------------------------
 
   // Function to Get Fill Color Based on Duration
   const getZoneFillColor = (zoneId: string) => {
@@ -600,7 +656,9 @@ export default function HeatMap({
           onHover: (info) => {
             if (info.object) {
               const zoneId = info.object.properties.zone_id;
-              const zoneData = zonesDurationData.find((zone) => zone.zone === zoneId);
+              const zoneData = zonesDurationData.find(
+                (zone) => zone.zone === zoneId
+              );
               if (zoneData) {
                 setHoveredZone({
                   duration: zoneData.duration,
@@ -646,7 +704,7 @@ export default function HeatMap({
       );
     }
 
-    // NUEVA: Capa de FOV
+    // Capa de FOV
     if (layerVisibility.camsFov && camsFovData) {
       layers.push(
         new GeoJsonLayer({
@@ -663,6 +721,24 @@ export default function HeatMap({
       );
     }
 
+    // ---------------------------------------------------------------------------
+    // NUEVA: Capa de Scatter (usando datos del endpoint /scatter-detections)
+    if (layerVisibility.scatter && scatterData) {
+      layers.push(
+        new ScatterplotLayer({
+          id: "scatter-layer",
+          data: scatterData.features, // Usamos el arreglo de features del GeoJSON
+          getPosition: (d) => d.geometry.coordinates,
+          getRadius: 2,
+          getFillColor: [180, 0, 200, 50],
+          pickable: true,
+          autoHighlight: true,
+        })
+      );
+    }
+    // ---------------------------------------------------------------------------
+
+
     return layers;
   }, [
     bitmapImage,
@@ -673,6 +749,7 @@ export default function HeatMap({
     refresh,
     layerVisibility,
     camsFovData,
+    scatterData,
   ]);
 
   // Función para descargar datos en formato GeoJSON (sin cambios)
@@ -756,7 +833,7 @@ export default function HeatMap({
     URL.revokeObjectURL(url);
   };
 
-  // Cálculo de KPIs (sin cambios)
+  // Cálculo de KPIs 
   const totalUniquePersons = new Set(data.map((d) => d.id_person)).size;
   const meanDuration = zonesDurationData.length > 0
     ? (zonesDurationData.reduce((sum, zone) => sum + zone.duration, 0) / zonesDurationData.length).toFixed(1)
@@ -804,7 +881,7 @@ export default function HeatMap({
         📥 Download GeoJSON
       </button>
       <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-gray-900/90 p-4 rounded-lg shadow-lg flex gap-6 text-white text-lg font-bold">
-        <div className="flex flex-col items-center">
+      <div className="flex flex-col items-center">
           👥 Unique Persons <span className="text-2xl">{totalUniquePersons}</span>
         </div>
         <div className="flex flex-col items-center">
@@ -817,3 +894,12 @@ export default function HeatMap({
     </div>
   );
 }
+
+
+
+
+
+
+
+
+

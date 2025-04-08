@@ -27,7 +27,8 @@ export function Calendar({ selectedDate, onChange, disabledDates = [] }: Calenda
       {/* Custom Header (Month and Year Only) */}
       <div className="bg-gray-800/90 text-white text-center py-2 rounded-t-lg shadow-md">
         <h3 className="text-lg font-semibold">
-          {new Date(selectedDate).toLocaleString("default", { month: "long", year: "numeric" })}
+          {/* {new Date(selectedDate).toLocaleString("default", { month: "long", year: "numeric" })} */}
+          {new Date(selectedDate).toLocaleString("es-ES", { month: "long", year: "numeric" })}
         </h3>
       </div>
 

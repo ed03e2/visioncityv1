@@ -2,8 +2,9 @@ import psycopg2
 import json
 import geopandas as gpd
 import pandas as pd
-
-
+import numpy as np
+from shapely.geometry import mapping
+import warnings
 
 # ✅ Database Connection Using psycopg2
 POSTGIS_CONN = {
@@ -329,3 +330,80 @@ def get_arc_and_duration_data(date_filter, start_hour, end_hour):
     except Exception as e:
         return {"error": f"Database Error: {str(e)}"}
 
+
+
+def get_scatter_detections(sample_size=500000):
+    """
+    Obtiene detecciones de la tabla 'person_observed', filtra aquellas que
+    caen dentro del FOV de las cámaras y retorna una muestra (por defecto 500k)
+    en formato GeoJSON.
+    """
+    try:
+        # Conectar a la base de datos y obtener detecciones
+        conn = psycopg2.connect(**POSTGIS_CONN)
+        SQL_QUERY = """
+            SELECT id, id_person, lat, long, timestamp
+            FROM person_observed
+            LIMIT 4000000;
+        """
+        df = pd.read_sql(SQL_QUERY, conn)
+        conn.close()
+        
+        # Crear un GeoDataFrame a partir de las detecciones
+        gdf = gpd.GeoDataFrame(
+            df,
+            geometry=gpd.points_from_xy(df["long"], df["lat"]),
+            crs="EPSG:4326"
+        )
+        # Extraer el nombre de la cámara a partir del id (convertido a minúsculas)
+        gdf['cam_name'] = gdf["id"].str.split('-').str[0].str.lower()
+        
+        # Cargar el archivo GeoJSON que contiene los polígonos FOV de las cámaras
+        # fov_gdf = gpd.read_file('cams_fov.geojson')
+        # fov_gdf['name'] = fov_gdf['name'].str.lower()
+        
+        fov_gdf = gpd.read_file('cams_fov.geojson')
+
+        # Eliminar la columna 'id' para evitar conflictos
+        if 'id' in fov_gdf.columns:
+            fov_gdf = fov_gdf.drop(columns=['id'])
+
+        fov_gdf['name'] = fov_gdf['name'].str.lower()
+        
+        # Asegurar que ambos GeoDataFrame tengan el mismo CRS
+        gdf = gdf.to_crs(fov_gdf.crs)
+        
+        # Realizar unión espacial para obtener los puntos dentro de los polígonos FOV
+        joined_gdf = gpd.sjoin(gdf, fov_gdf, how='inner', predicate='within')
+        
+        # Filtrar detecciones donde el nombre del polígono FOV coincide con cam_name
+        filtered_gdf = joined_gdf[joined_gdf['name'] == joined_gdf['cam_name']]
+        
+        # Suprimir advertencias y ajustar la columna de timestamp
+        warnings.filterwarnings("ignore")
+        filtered_gdf['timestamp'] = pd.to_datetime(filtered_gdf['timestamp']) - pd.to_timedelta(6, unit='h')
+        
+        # Si hay demasiados puntos, tomar una muestra
+        if sample_size and len(filtered_gdf) > sample_size:
+            filtered_gdf = filtered_gdf.sample(sample_size)
+        
+        # Convertir el GeoDataFrame a GeoJSON
+        geojson = {
+            "type": "FeatureCollection",
+            "features": []
+        }
+        for _, row in filtered_gdf.iterrows():
+            feature = {
+                "type": "Feature",
+                "geometry": mapping(row.geometry),
+                "properties": {
+                    "id": row["id"],
+                    "id_person": row["id_person"],
+                    "timestamp": row["timestamp"].isoformat()
+                }
+            }
+            geojson["features"].append(feature)
+        
+        return geojson
+    except Exception as e:
+        return {"error": str(e)}

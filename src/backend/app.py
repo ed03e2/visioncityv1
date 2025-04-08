@@ -3,7 +3,7 @@ from flask_cors import CORS
 import json
 import base64
 import psycopg2
-from database import get_filtered_data, get_available_dates, generate_arc_layer, get_zones, get_duration_times_by_zone, get_arc_and_duration_data
+from database import get_filtered_data, get_available_dates, generate_arc_layer, get_zones, get_duration_times_by_zone, get_arc_and_duration_data, get_scatter_detections
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
@@ -112,7 +112,22 @@ def get_cams_fov():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route("/scatter-detections", methods=["GET"])
+def scatter_detections():
+    """Endpoint para obtener las detecciones filtradas por FOV en formato GeoJSON."""
+    result = get_scatter_detections()
+    if "error" in result:
+        return jsonify({"error": result["error"]}), 500
+    return jsonify(result)
 
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
+
+
+
+
+
+
+
+
