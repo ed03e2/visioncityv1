@@ -3,7 +3,7 @@ from flask_cors import CORS
 import json
 import base64
 import psycopg2
-from database import get_filtered_data, get_available_dates, generate_arc_layer, get_zones, get_duration_times_by_zone, get_arc_and_duration_data, get_scatter_detections
+from database import get_filtered_data, get_available_dates, generate_arc_layer, get_zones, get_duration_times_by_zone, get_arc_and_duration_data, get_scatter_detections, get_density_data
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
@@ -120,6 +120,15 @@ def scatter_detections():
         return jsonify({"error": result["error"]}), 500
     return jsonify(result)
 
+@app.route("/density-data", methods=["GET"])
+def get_density():
+    """
+    Endpoint para obtener la densidad calculada en detecciones filtradas.
+    """
+    result = get_density_data()  # Puedes pasar parámetros si lo deseas
+    if isinstance(result, dict) and "error" in result:
+        return jsonify({"error": result["error"]}), 500
+    return jsonify(result)
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)

@@ -138,7 +138,7 @@ export default function DashboardPage() {
     arcs: true,
     camsFov: true,  // NUEVO: Control de la capa FOV
     scatter: true,
-    density: true,
+    density: false,
   });
 
   // Cerrar modal al hacer click fuera

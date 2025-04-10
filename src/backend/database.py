@@ -5,6 +5,7 @@ import pandas as pd
 import numpy as np
 from shapely.geometry import mapping
 import warnings
+from sklearn.neighbors import NearestNeighbors
 
 # ✅ Database Connection Using psycopg2
 POSTGIS_CONN = {
@@ -332,6 +333,9 @@ def get_arc_and_duration_data(date_filter, start_hour, end_hour):
 
 
 
+
+
+
 def get_scatter_detections(sample_size=500000):
     """
     Obtiene detecciones de la tabla 'person_observed', filtra aquellas que
@@ -344,7 +348,7 @@ def get_scatter_detections(sample_size=500000):
         SQL_QUERY = """
             SELECT id, id_person, lat, long, timestamp
             FROM person_observed
-            LIMIT 4000000;
+            LIMIT 1000000;
         """
         df = pd.read_sql(SQL_QUERY, conn)
         conn.close()
@@ -405,5 +409,73 @@ def get_scatter_detections(sample_size=500000):
             geojson["features"].append(feature)
         
         return geojson
+    except Exception as e:
+        return {"error": str(e)}
+    
+
+
+def get_density_data(sample_size=1000000, n_neighbors=50):
+    """
+    Calcula y retorna datos de densidad a partir de detecciones filtradas.
+    Se basa en la función get_scatter_detections para obtener los puntos y luego
+    estima la densidad por cámara.
+    """
+    try:
+        # Reutiliza la consulta de detecciones (puedes adaptar la consulta si ya la tienes en otra función)
+        conn = psycopg2.connect(**POSTGIS_CONN)
+        SQL_QUERY = """
+            SELECT id, id_person, lat, long, timestamp
+            FROM person_observed
+            LIMIT 500000;
+        """
+        df = pd.read_sql(SQL_QUERY, conn)
+        conn.close()
+        
+        # Convertir a GeoDataFrame
+        gdf = gpd.GeoDataFrame(df, geometry=gpd.points_from_xy(df.long, df.lat), crs="EPSG:4326")
+        # Extraer el nombre de la cámara (asumiendo que es la parte previa al guión en 'id')
+        gdf['cam_name'] = gdf['id'].str.split('-').str[0].str.lower()
+        
+        # Lee el GeoJSON de FOV y realiza el join espacial (similares a get_scatter_detections)
+        fov_gdf = gpd.read_file('cams_fov.geojson')
+        fov_gdf['name'] = fov_gdf['name'].str.lower()
+        gdf = gdf.to_crs(fov_gdf.crs)
+        joined_gdf = gpd.sjoin(gdf, fov_gdf, how='inner', predicate='within')
+        filtered_gdf = joined_gdf[joined_gdf['name'] == joined_gdf['cam_name']]
+        
+        # Opcional: Ajustar la columna timestamp
+        filtered_gdf['timestamp'] = pd.to_datetime(filtered_gdf['timestamp']) - pd.to_timedelta(6, unit='h')
+        
+        # Muestrear para el cálculo de densidad
+        filtered_gdf_s = filtered_gdf.sample(min(sample_size, len(filtered_gdf)))
+        
+        # Función interna para estimar densidad por cámara
+        def estimate_density_by_camera(camera_name, camera_points, n_neighbors=n_neighbors):
+            camera_coords = np.vstack([camera_points.geometry.x, camera_points.geometry.y])
+            nbrs = NearestNeighbors(n_neighbors=n_neighbors, algorithm='ball_tree').fit(camera_coords.T)
+            distances, _ = nbrs.kneighbors(camera_coords.T)
+            
+            mean_distances = distances.mean(axis=1)
+            mean_distances[mean_distances == 0] = np.nan  # Evitar división por cero
+            densities = 1 / mean_distances
+            densities = np.nan_to_num(densities, nan=0.0)
+            densities_normalized = densities / densities.max() if densities.max() != 0 else densities
+            
+            return pd.DataFrame({
+                'longitude': camera_points.geometry.x,
+                'latitude': camera_points.geometry.y,
+                'density': densities_normalized,
+                'camera': camera_name
+            })
+        
+        # Agrupar por cámara y calcular la densidad
+        density_dfs = []
+        for camera_name, camera_points in filtered_gdf_s.groupby('cam_name'):
+            density_df = estimate_density_by_camera(camera_name, camera_points)
+            density_dfs.append(density_df)
+        
+        # Concatenar los DataFrames por cada cámara
+        density_df = pd.concat(density_dfs, ignore_index=True)
+        return density_df.to_dict(orient='records')
     except Exception as e:
         return {"error": str(e)}

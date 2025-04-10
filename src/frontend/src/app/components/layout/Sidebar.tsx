@@ -81,6 +81,7 @@ interface SidebarProps {
     // -------------------------
     camsFov: boolean;
     scatter: boolean;
+    density: boolean;
     // -------------------------
 
   };
@@ -92,6 +93,7 @@ interface SidebarProps {
     // -------------------------
     camsFov: boolean;
     scatter: boolean;
+    density: boolean;
     // -------------------------
 
   }) => void;
@@ -129,7 +131,7 @@ export default function Sidebar({
   return (
     <>
       {/* Botón para mostrar/ocultar el Sidebar */}
-      <button 
+      <button
         className="fixed top-16 left-4 z-50 bg-blue-600 text-white p-3 rounded-full shadow-lg hover:bg-blue-500 transition"
         onClick={() => setOpen(!open)}
       >
@@ -137,29 +139,39 @@ export default function Sidebar({
       </button>
 
       {/* Sidebar */}
-      <div 
+      <div
         id="sidebar"
         className={`fixed top-0 left-0 h-full w-80 backdrop-blur-md bg-gray-900/75 shadow-xl z-50 transform transition-transform duration-300 ${
           open ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         <div className="p-6 text-white font-sans">
-          <h2 className="text-2xl font-bold text-white/95 shadow-md mb-6">Filters</h2>
+          <h2 className="text-2xl font-bold text-white/95 shadow-md mb-6">
+            Filters
+          </h2>
 
           {/* Calendar */}
           <div className="bg-white/20 p-4 rounded-lg shadow-md">
-            <Calendar selectedDate={selectedDate} onChange={setSelectedDate} disabledDates={availableDates} />
+            <Calendar
+              selectedDate={selectedDate}
+              onChange={setSelectedDate}
+              disabledDates={availableDates}
+            />
           </div>
 
           {/* Range Slider */}
           <div className="mt-6 bg-white/20 p-4 rounded-lg shadow-md">
-            <h3 className="text-lg font-semibold text-white/95 mb-2">Select Time Range</h3>
+            <h3 className="text-lg font-semibold text-white/95 mb-2">
+              Select Time Range
+            </h3>
             <RangeSlider value={timeRange} onChange={setTimeRange} />
           </div>
 
           {/* Controles de Visibilidad de Capas */}
           <div className="mt-6 bg-white/20 p-4 rounded-lg shadow-md">
-            <h3 className="text-lg font-semibold text-white/95 mb-2">Visualización de Capas</h3>
+            <h3 className="text-lg font-semibold text-white/95 mb-2">
+              Visualización de Capas
+            </h3>
             <div className="flex flex-col gap-2">
               <label className="flex items-center">
                 <input
@@ -198,8 +210,6 @@ export default function Sidebar({
                 Mostrar FOV
               </label>
 
-
-              
               <label className="flex items-center">
                 <input
                   type="checkbox"
@@ -210,8 +220,17 @@ export default function Sidebar({
                 Mostrar Scatter
               </label>
 
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
+                  checked={layerVisibility.density}
+                  onChange={() => handleToggleLayer("density")}
+                  className="mr-2"
+                />
+                Mostrar Densidad
+              </label>
 
-
+              
             </div>
           </div>
         </div>
