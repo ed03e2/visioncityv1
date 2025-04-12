@@ -4,6 +4,7 @@ import json
 import base64
 import psycopg2
 from database import get_filtered_data, get_available_dates, generate_arc_layer, get_zones, get_duration_times_by_zone, get_arc_and_duration_data, get_scatter_detections, get_density_data
+from analytics_heatmap import generate_time_heatmap 
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
@@ -129,6 +130,17 @@ def get_density():
     if isinstance(result, dict) and "error" in result:
         return jsonify({"error": result["error"]}), 500
     return jsonify(result)
+
+@app.route("/analytics-time-heatmap", methods=["GET"])
+def analytics_time_heatmap():
+    """
+    Endpoint que genera y retorna el heatmap temporal en formato HTML.
+    """
+    try:
+        html_output = generate_time_heatmap()
+        return html_output, 200, {'Content-Type': 'text/html'}
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)

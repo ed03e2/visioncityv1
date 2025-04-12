@@ -348,7 +348,7 @@ def get_scatter_detections(sample_size=500000):
         SQL_QUERY = """
             SELECT id, id_person, lat, long, timestamp
             FROM person_observed
-            LIMIT 1000000;
+            LIMIT 100000;
         """
         df = pd.read_sql(SQL_QUERY, conn)
         conn.close()
@@ -414,7 +414,7 @@ def get_scatter_detections(sample_size=500000):
     
 
 
-def get_density_data(sample_size=1000000, n_neighbors=50):
+def get_density_data(sample_size=100000, n_neighbors=50):
     """
     Calcula y retorna datos de densidad a partir de detecciones filtradas.
     Se basa en la función get_scatter_detections para obtener los puntos y luego
@@ -426,7 +426,7 @@ def get_density_data(sample_size=1000000, n_neighbors=50):
         SQL_QUERY = """
             SELECT id, id_person, lat, long, timestamp
             FROM person_observed
-            LIMIT 500000;
+            LIMIT 100000;
         """
         df = pd.read_sql(SQL_QUERY, conn)
         conn.close()
