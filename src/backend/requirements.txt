@@ -1,4 +1,10 @@
 flask
+psycopg2-binary
+geopandas
+pandas
+numpy
+shapely
+scikit-learn
 flask-cors
-psycopg2
+altair
 
